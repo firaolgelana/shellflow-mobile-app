@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shell_flow_mobile_app/features/auth/presentation/pages/sign_in.dart';
-
+import 'package:shell_flow_mobile_app/core/routes/app_routes.dart';
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
@@ -8,9 +7,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Material App',
-      home: SignIn()
+    return const MaterialApp(
+      initialRoute: AppRoutes.signIn,
+      onGenerateRoute: AppRoutes.generateRoute,
     );
   }
 }
