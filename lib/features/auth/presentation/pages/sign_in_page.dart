@@ -15,6 +15,7 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black12,
       appBar: AppBar(
         title: const Text('ShellFlow'),
         backgroundColor: Colors.blue,
@@ -65,14 +66,18 @@ class _SignInPageState extends State<SignInPage> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white
+                    foregroundColor: Colors.white,
                   ),
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
                       debugPrint('correct form');
+                      Navigator.pushNamed(context, AppRoutes.homePageRoutes);
                     }
                   },
-                  child: const Text('  SignIn  ',style: TextStyle(fontWeight: FontWeight.bold),),
+                  child: const Text(
+                    '  SignIn  ',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               Row(
