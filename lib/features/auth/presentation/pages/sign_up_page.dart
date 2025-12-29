@@ -227,6 +227,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     OutlinedButton.icon(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
                         side: const BorderSide(color: Colors.grey),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

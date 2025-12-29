@@ -24,7 +24,7 @@ Widget drawerWidget() {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Girl',
+                      'Person X',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
