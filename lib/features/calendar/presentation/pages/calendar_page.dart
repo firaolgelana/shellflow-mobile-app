@@ -55,11 +55,23 @@ class _CalendarPageState extends State<CalendarPage> {
         dataSource: _getDataSource(),
         backgroundColor: const Color(0xFF0F1316),
         cellBorderColor: Colors.white10,
+          // ADD THIS BLOCK:
+        timeSlotViewSettings: const TimeSlotViewSettings(
+          // This changes the time labels on the left to white
+          timeTextStyle: TextStyle(
+            color: Colors.white70, 
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+          ),
+          // Optional: Changes the color of the horizontal lines between hours
+          // timelineAnimationDuration: Duration(milliseconds: 300),
+        ),
+
         
         // This function triggers every time you scroll/swipe
         onViewChanged: (ViewChangedDetails details) {
           // Get the date in the middle of the visible dates to determine the month
-          DateTime visibleDate = details.visibleDates[details.visibleDates.length ~/ 2];
+          final DateTime visibleDate = details.visibleDates[details.visibleDates.length ~/ 2];
           
           // Update the month name in the AppBar
           // Use 'MMMM yyyy' if you want "November 2025"

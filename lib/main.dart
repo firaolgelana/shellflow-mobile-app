@@ -8,6 +8,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.signIn,
       onGenerateRoute: AppRoutes.generateRoute,
     );
