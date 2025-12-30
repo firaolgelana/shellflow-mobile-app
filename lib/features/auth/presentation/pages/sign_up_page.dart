@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl_phone_field/countries.dart';
 import 'package:shell_flow_mobile_app/core/routes/app_routes.dart';
+import 'package:shell_flow_mobile_app/features/auth/presentation/bloc/auth_bloc.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -198,7 +201,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       child: CheckboxListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text(
-                          'Sync Contacts',
+                          'Sync Contacts Shell',
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                         value: _syncContacts,
@@ -224,28 +227,59 @@ class _SignUpPageState extends State<SignUpPage> {
                     const SizedBox(height: 20),
 
                     /// Continue with Google
-                    OutlinedButton.icon(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.grey),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 16,
-                        ),
-                      ),
-                      icon: Image.asset('assets/icons/google.jpg', height: 20),
-                      label: const Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                    // --- BLOC CONSUMER FOR GOOGLE SIGN IN ---
+                    BlocConsumer<AuthBloc, AuthState>(
+                      listener: (context, state) {
+                        if (state is SignedInState || state is AuthenticatedState) {
+                          // Navigate to your main page (e.g., Calendar)
+                          Navigator.pushNamedAndRemoveUntil(
+                            context, 
+                            AppRoutes.homePageRoutes, // Change this to your home/calendar route
+                            (route) => false,
+                          );
+                        }
+                        if (state is AuthErrorState) {
+                          // Show error message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+                          );
+                        }
+                      },
+                      builder: (context, state) {
+                        // If loading, show a spinner instead of the button
+                        if (state is AuthLoadingState) {
+                          return const Center(
+                            child: CircularProgressIndicator(color: Colors.blueAccent),
+                          );
+                        }
+
+                        return OutlinedButton.icon(
+                          onPressed: () {
+                            // CALL THE BLOC HERE
+                            context.read<AuthBloc>().add(SignInWithGoogleEvent());
+                          },
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.grey),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 16,
+                            ),
+                          ),
+                          icon: const FaIcon(FontAwesomeIcons.google, color: Colors.red),
+                          label: const Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     Row(

@@ -25,27 +25,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
        _signupUsecase = signupUsecase,
        _signinWithGoogleUsecase = signinWithGoogleUsecase,
        super(InitialState()) {
-    
     on<SignInWithGoogleEvent>(_onSignInWithGoogle);
     on<SignInWithEmailEvent>(_onSignInWithEmail);
     on<SignUpEvent>(_onSignUp);
     on<SignOutEvent>(_onSignOut);
   }
 
-  
   void _onSignInWithGoogle(
     SignInWithGoogleEvent event,
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoadingState());
-    final result = await _signinWithGoogleUsecase(); 
-    result.fold(
-      (failure) => emit(AuthErrorState(message: failure.message)),
-      (user) => emit(SignedInState(user: user)), 
-    );
+    try {
+      final result = await _signinWithGoogleUsecase();
+      result.fold(
+        (failure) => emit(AuthErrorState(message: failure.message)),
+        (user) => emit(SignedInState(user: user)),
+      );
+    } catch (e) {
+      emit(AuthErrorState(message: e.toString()));
+    }
   }
 
-  
   void _onSignInWithEmail(
     SignInWithEmailEvent event,
     Emitter<AuthState> emit,
@@ -59,7 +60,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  
   void _onSignUp(SignUpEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoadingState());
     final user = User(email: event.email, password: event.password);
@@ -70,13 +70,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  
   void _onSignOut(SignOutEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoadingState());
     final result = await _signoutUsecase();
     result.fold(
       (failure) => emit(AuthErrorState(message: failure.message)),
-      (_) => emit(InitialState()), 
+      (_) => emit(InitialState()),
     );
   }
 }
