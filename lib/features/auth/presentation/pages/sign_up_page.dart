@@ -34,11 +34,14 @@ class _SignUpPageState extends State<SignUpPage>
     return Scaffold(
       backgroundColor: darkBg,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: darkBg,
         elevation: 0,
-        title: const Text(
-          'Create Account',
-          style: TextStyle(color: Colors.white),
+        title: const Center(
+          child: Text(
+            'Create Account',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
         // 3. Put the TabBar in the "bottom" of the AppBar
         bottom: TabBar(
