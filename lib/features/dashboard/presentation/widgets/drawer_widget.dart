@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shell_flow_mobile_app/core/routes/app_routes.dart';
 
-Widget drawerWidget() {
+Widget drawerWidget(BuildContext context) {
   return Drawer(
     child: ListView(
       padding: EdgeInsets.zero, // IMPORTANT
-      children: const [
-        DrawerHeader(
+      children: [
+        const DrawerHeader(
           decoration: BoxDecoration(
             color: Colors.blue, // different color
           ),
@@ -24,7 +25,7 @@ Widget drawerWidget() {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Girl',
+                      'Person X',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -34,10 +35,7 @@ Widget drawerWidget() {
                     SizedBox(height: 4),
                     Text(
                       '+251 9XX XXX XXX',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                   ],
                 ),
@@ -47,26 +45,20 @@ Widget drawerWidget() {
         ),
 
         // Drawer items
-        ListTile(
-          leading: Icon(Icons.person),
-          title: Text('Profile'),
-        ),
-        ListTile(
-          leading: Icon(Icons.task),
-          title: Text('Tasks'),
-        ),
-        ListTile(
-          leading: Icon(Icons.settings),
-          title: Text('Settings'),
-        ),
-        ListTile(
+       ListTile(
+          leading: const Icon(Icons.person), title: const Text('Profile'),
+            onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(context, AppRoutes.profile);
+          }),
+        const ListTile(leading: Icon(Icons.task), title: Text('Tasks')),
+        const ListTile(leading: Icon(Icons.settings), title: Text('Settings')),
+        const ListTile(
           leading: Icon(Icons.featured_play_list),
           title: Text('Features'),
+
         ),
-        ListTile(
-          leading: Icon(Icons.logout),
-          title: Text('Logout'),
-        ),
+        const ListTile(leading: Icon(Icons.logout), title: Text('Logout')),
       ],
     ),
   );

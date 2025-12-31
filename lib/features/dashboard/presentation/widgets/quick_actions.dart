@@ -15,6 +15,7 @@ Widget quickActions() {
     crossAxisSpacing: 10,
     childAspectRatio: 1.7,
     shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
     padding: const EdgeInsets.all(10),
     children: List.generate(entries.length, (index) {
       final icon = entries[index].key;

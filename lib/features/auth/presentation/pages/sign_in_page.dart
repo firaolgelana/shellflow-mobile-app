@@ -15,7 +15,7 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black12,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('ShellFlow'),
         backgroundColor: Colors.blue,
@@ -63,20 +63,23 @@ class _SignInPageState extends State<SignInPage> {
               ),
               const SizedBox(height: 16),
               Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      debugPrint('correct form');
-                      Navigator.pushNamed(context, AppRoutes.homePageRoutes);
-                    }
-                  },
-                  child: const Text(
-                    '  SignIn  ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                child: SizedBox(
+                  width: 150,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        debugPrint('correct form');
+                        Navigator.pushNamed(context, AppRoutes.homePageRoutes);
+                      }
+                    },
+                    child: const Text(
+                      'SignIn',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
                   ),
                 ),
               ),
@@ -88,7 +91,7 @@ class _SignInPageState extends State<SignInPage> {
                     onPressed: () {
                       Navigator.pushNamed(context, AppRoutes.signUp);
                     },
-                    child: const Text('Sign Up'),
+                    child: const Text('SignUp'),
                   ),
                 ],
               ),
