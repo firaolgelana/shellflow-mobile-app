@@ -91,11 +91,6 @@ class _PhoneSignUpState extends State<PhoneSignUp> {
         0xFF1D2733,
       ), // Dark Telegram-style background
       resizeToAvoidBottomInset: true, // Pushes button up when keyboard opens
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const Icon(Icons.arrow_back, color: Colors.white),
-      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30),
         child: Column(

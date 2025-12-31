@@ -1,4 +1,3 @@
-// lib/features/profile/data/models/user_profile_model.dart
 import 'package:shell_flow_mobile_app/features/profile/domain/entities/user_profile.dart';
 
 class UserProfileModel extends UserProfile {

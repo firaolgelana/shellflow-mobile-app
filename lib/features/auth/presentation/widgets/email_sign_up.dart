@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shell_flow_mobile_app/core/constants/app_colors.dart';
 import 'package:shell_flow_mobile_app/core/routes/app_routes.dart';
+import 'package:shell_flow_mobile_app/features/auth/presentation/widgets/custom_text_field.dart';
 import 'package:shell_flow_mobile_app/features/auth/presentation/bloc/auth_bloc.dart';
 
 class EmailSignUp extends StatefulWidget {
@@ -60,7 +62,7 @@ class _EmailSignUpState extends State<EmailSignUp> {
                 const SizedBox(height: 25),
 
                 // Name Field
-                _customTextField(
+                CustomTextField(
                   controller: _nameController,
                   label: "Full Name",
                   icon: Icons.person,
@@ -69,7 +71,7 @@ class _EmailSignUpState extends State<EmailSignUp> {
                 const SizedBox(height: 15),
 
                 // Email Field
-                _customTextField(
+                CustomTextField(
                   controller: _emailController,
                   label: "Email Address",
                   icon: Icons.email,
@@ -82,7 +84,7 @@ class _EmailSignUpState extends State<EmailSignUp> {
                 const SizedBox(height: 15),
 
                 // Password Field with Eye Icon
-                _customTextField(
+                CustomTextField(
                   controller: _passwordController,
                   label: "Password",
                   icon: Icons.lock,
@@ -94,7 +96,7 @@ class _EmailSignUpState extends State<EmailSignUp> {
                 const SizedBox(height: 15),
 
                 // Confirm Password Field with Eye Icon
-                _customTextField(
+                CustomTextField(
                   controller: _confirmPasswordController,
                   label: "Confirm Password",
                   icon: Icons.lock_outline,
@@ -127,7 +129,7 @@ class _EmailSignUpState extends State<EmailSignUp> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
+                          backgroundColor: AppColors.blueshade,
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
@@ -155,6 +157,25 @@ class _EmailSignUpState extends State<EmailSignUp> {
                   icon: const FaIcon(FontAwesomeIcons.google, color: Colors.red, size: 20),
                   label: const Text("Continue with Google", style: TextStyle(color: Colors.white)),
                 ),
+                const SizedBox(height: 16,),
+                Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "have an account",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.signIn);
+                    },
+                    child: const Text(
+                      'SignIn',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
               ],
             ),
           ),
@@ -164,52 +185,5 @@ class _EmailSignUpState extends State<EmailSignUp> {
   }
 
   // 5. Helper Widget using TextFormField
-  Widget _customTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    bool isPassword = false,
-    bool obscureText = false,
-    VoidCallback? toggleVisibility,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      validator: validator, // Validation Logic
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-        prefixIcon: Icon(icon, color: Colors.blueAccent, size: 20),
-        // Add Suffix Icon for Toggle
-        suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(
-                  obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-                onPressed: toggleVisibility,
-              )
-            : null,
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white12),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.blueAccent),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.redAccent),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.redAccent),
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
+  
 }
