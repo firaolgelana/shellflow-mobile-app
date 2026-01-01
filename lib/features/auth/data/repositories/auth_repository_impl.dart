@@ -8,40 +8,118 @@ import 'package:shell_flow_mobile_app/features/auth/domain/repositories/auth_rep
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDatasource remoteDatasource;
   final NetworkInfo networkInfo;
+
   AuthRepositoryImpl({
     required this.remoteDatasource,
     required this.networkInfo,
   });
-  @override
-  Future<Either<Failure, void>> signOUt() {
-    // TODO: implement signOUt
-    throw UnimplementedError();
-  }
 
+  // ================= SIGN UP =================
   @override
-  Future<Either<Failure, User>> singInUser(User user) {
-    // TODO: implement singInUser
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, User>> singUpUser(User user) {
-    // TODO: implement singUpUser
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, User>> singInWithGoogle() async {
-    final isConnected = networkInfo.isConnected;
-    if (await isConnected) {
+  Future<Either<Failure, User>> singUpUser(User user) async {
+    if (await networkInfo.isConnected) {
       try {
-        final data = remoteDatasource.signInWithGoogle();
-        return Right(await data);
+        final result = await remoteDatasource.signUpUser(user);
+        return Right(result);
       } catch (e) {
-        throw Left(Exception(e.toString()));
+        return Left(Failure(message: e.toString()));
       }
     } else {
-      throw Exception('No internet connection');
+      return const Left(NetworkFailure(message: 'No Internet Connection'));
     }
   }
+
+  // ================= SIGN IN =================
+  @override
+  Future<Either<Failure, User>> singInUser(User user) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final result = await remoteDatasource.signInUser(user);
+        return Right(result);
+      } catch (e) {
+        return Left(Failure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No Internet Connection'));
+    }
+  }
+
+  // ================= GOOGLE SIGN IN =================
+  @override
+  Future<Either<Failure, User>> singInWithGoogle() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final result = await remoteDatasource.signInWithGoogle();
+        return Right(result);
+      } catch (e) {
+        return Left(Failure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No Internet Connection'));
+    }
+  }
+
+  // ================= PHONE SIGN IN =================
+  @override
+  Future<Either<Failure, User>> singInWithPhone() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final result = await remoteDatasource.signInWithPhone();
+        return Right(result);
+      } catch (e) {
+        return Left(Failure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No Internet Connection'));
+    }
+  }
+
+  // ================= SIGN OUT =================
+  @override
+  Future<Either<Failure, void>> signOUt() async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDatasource.signOut();
+        return const Right(null);
+      } catch (e) {
+        return Left(Failure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No Internet Connection'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final user = await remoteDatasource.verifyOtp(
+          email: email,
+          otp: otp,
+        );
+        return Right(user);
+      } catch (e) {
+        return Left(Failure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No Internet connection'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> getCurrentUser() async {
+    try {
+      final user = await remoteDatasource.getCurrentUser();
+      if (user == null) {
+        return const Left(Failure(message: 'No authenticated user'));
+      }
+      return Right(user);
+    } catch (e) {
+      return Left(Failure(message: e.toString()));
+    }
+  }
+
 }

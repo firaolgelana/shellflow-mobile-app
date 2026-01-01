@@ -38,15 +38,25 @@ class _EmailSignUpState extends State<EmailSignUp> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is SignedInState || state is AuthenticatedState || state is SignedInState) {
-          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.homePageRoutes, (route) => false);
-        }
-        if (state is AuthErrorState) {
+        if (state is VerificationRequiredState) {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.otpPage,
+            arguments: state.email, // pass email to OTP page
+          );
+        } else if (state is SignedInState || state is AuthenticatedState) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.homePageRoutes,
+            (route) => false,
+          );
+        } else if (state is AuthErrorState) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
+
       builder: (context, state) {
         return SingleChildScrollView(
           padding: const EdgeInsets.all(30.0),

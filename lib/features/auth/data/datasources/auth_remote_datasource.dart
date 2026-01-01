@@ -6,12 +6,20 @@ import 'package:shell_flow_mobile_app/features/auth/domain/entities/user.dart';
 abstract class AuthRemoteDatasource {
   Future<User> signUpUser(User user);
   Future<User> signInUser(User user);
+  Future<User> signInWithPhone();
   Future<User> signInWithGoogle();
+  Future<User> signOut();
+  Future<User> verifyOtp({required String email, required String otp});
+  Future<User?> getCurrentUser();
 }
 
 class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   final supabase.SupabaseClient supabaseClient;
-  const AuthRemoteDatasourceImpl({required this.supabaseClient});
+
+  const AuthRemoteDatasourceImpl({
+    required this.supabaseClient,
+  });
+
   @override
   Future<User> signInUser(User user) {
     // TODO: implement signInUser
@@ -19,46 +27,61 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   }
 
   @override
-  Future<User> signUpUser(User user) {
-    // TODO: implement signUpUser
-    throw UnimplementedError();
+  Future<User> signUpUser(User user) async {
+    try {
+      final response = await supabaseClient.auth.signUp(
+        email: user.email,
+        password: user.password ?? '',
+        data: {
+          'full_name': user.name,
+        },
+      );
+
+      if (response.user == null) {
+        throw const supabase.AuthException(
+          'Registration failed, user is null',
+        );
+      }
+
+      return _mapSupabaseUser(response.user!);
+    } on supabase.AuthException catch (e) {
+      throw Exception(e.message);
+    } catch (e) {
+      throw Exception("An unexpected error occurred: $e");
+    }
   }
 
   @override
   Future<User> signInWithGoogle() async {
     try {
-      // 1. Initialize (Required in v7+)
-      // Use your Web Client ID from Google Cloud Console as serverClientId
       await GoogleSignIn.instance.initialize(
         serverClientId: AuthConstants.googleClientId,
       );
 
-      // 2. Step 1: Authentication (Identity)
-      // This triggers the native account selector
-      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
+      final GoogleSignInAccount googleUser =
+          await GoogleSignIn.instance.authenticate();
 
-      // 3. Step 2: Obtain ID Token (Identity)
       final googleAuth = googleUser.authentication;
       final idToken = googleAuth.idToken;
 
-      // 4. Step 3: Obtain Access Token (Authorization)
-      // Access tokens are now handled by the authorizationClient in v7+
       final scopes = ['email', 'profile'];
-      final authorization = await googleUser.authorizationClient.authorizeScopes(scopes);
+      final authorization =
+          await googleUser.authorizationClient.authorizeScopes(scopes);
       final accessToken = authorization.accessToken;
 
       if (idToken == null) {
-        throw 'Required tokens (ID or Access) are missing.';
+        throw 'Required tokens are missing.';
       }
 
-      // 5. Connect to Supabase
       final response = await supabaseClient.auth.signInWithIdToken(
         provider: supabase.OAuthProvider.google,
         idToken: idToken,
         accessToken: accessToken,
       );
 
-      if (response.user == null) throw 'Supabase sign-in failed.';
+      if (response.user == null) {
+        throw 'Supabase sign-in failed.';
+      }
 
       return _mapSupabaseUser(response.user!);
     } catch (e) {
@@ -66,13 +89,53 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     }
   }
 
-  // Helper method to convert Supabase User to your Entity
+  @override
+  Future<User> signInWithPhone() {
+    // TODO: implement signInWithPhone
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<User> signOut() {
+    // TODO: implement signOut
+    throw UnimplementedError();
+  }
+
+  // ✅ FIXED
+  @override
+  Future<User> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final response = await supabaseClient.auth.verifyOTP(
+      email: email,
+      token: otp,
+      type: supabase.OtpType.email,
+    );
+
+    if (response.user == null) {
+      throw Exception('OTP verification failed');
+    }
+
+    return _mapSupabaseUser(response.user!);
+  }
+
+  @override
+  Future<User?> getCurrentUser() async {
+    final user = supabaseClient.auth.currentUser;
+    if (user == null) return null;
+    return _mapSupabaseUser(user);
+  }
+
+
+  // Helper mapper
   User _mapSupabaseUser(supabase.User user) {
     return User(
       id: user.id,
       email: user.email ?? '',
-      // Supabase automatically gets the name from Google and puts it in metadata
       name: user.userMetadata?['full_name'] ?? '',
+      isEmailVerified: user.emailConfirmedAt != null, // ✅ map email verification
+
     );
   }
 }

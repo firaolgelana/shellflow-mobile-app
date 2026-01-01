@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shell_flow_mobile_app/core/network/network_info.dart';
+import 'package:shell_flow_mobile_app/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:shell_flow_mobile_app/features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shell_flow_mobile_app/core/constants/auth_constants.dart';
 import 'package:shell_flow_mobile_app/features/auth/data/datasources/auth_remote_datasource.dart';
@@ -57,6 +59,8 @@ void _initAuth() {
   sl.registerLazySingleton(() => SignupUsecase(repository: sl()));
   sl.registerLazySingleton(() => SignoutUsecase(repository: sl()));
   sl.registerLazySingleton(() => SigninWithGoogleUsecase(repository: sl()));
+  sl.registerLazySingleton(() => GetCurrentUserUsecase(repository: sl()));
+  sl.registerLazySingleton(() => VerifyOtpUsecase(repository: sl()));
 
   // --- Presentation Layer (Bloc) ---
   // Bloc needs all the usecases
@@ -66,7 +70,9 @@ void _initAuth() {
       signinUsecase: sl(),
       signupUsecase: sl(),
       signoutUsecase: sl(),
-      signinWithGoogleUsecase: sl(),
+      signinWithGoogleUsecase: sl(), 
+      verifyOtpUsecase: sl(), 
+      getCurrentUserUsecase: sl(),
     ),
   );
 }
