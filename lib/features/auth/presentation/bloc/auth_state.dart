@@ -17,6 +17,11 @@ class AuthErrorState extends AuthState {
   @override
   List<Object?> get props => [message];
 }
+class VerificationRequiredState extends AuthState {
+  final String email;
+  VerificationRequiredState({required this.email});
+}
+
 
 class SignedOutState extends AuthState {}
 

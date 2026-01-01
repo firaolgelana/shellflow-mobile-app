@@ -90,14 +90,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, User>> verifyOTP(String email, String token) async {
+  Future<Either<Failure, User>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
     if (await networkInfo.isConnected) {
       try {
-        final result = await remoteDatasource.verifyOTP(
+        final user = await remoteDatasource.verifyOtp(
           email: email,
-          token: token,
+          otp: otp,
         );
-        return Right(result);
+        return Right(user);
       } catch (e) {
         return Left(Failure(message: e.toString()));
       }
@@ -105,4 +108,18 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Left(NetworkFailure(message: 'No Internet connection'));
     }
   }
+
+  @override
+  Future<Either<Failure, User>> getCurrentUser() async {
+    try {
+      final user = await remoteDatasource.getCurrentUser();
+      if (user == null) {
+        return const Left(Failure(message: 'No authenticated user'));
+      }
+      return Right(user);
+    } catch (e) {
+      return Left(Failure(message: e.toString()));
+    }
+  }
+
 }

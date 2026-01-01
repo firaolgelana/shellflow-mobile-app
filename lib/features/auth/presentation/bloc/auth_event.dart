@@ -18,6 +18,13 @@ class SignInWithEmailEvent extends AuthEvent {
   @override
   List<Object?> get props => [email, password];
 }
+class GetCurrentUserEvent extends AuthEvent{}
+
+class VerifyOtpEvent extends AuthEvent {
+  final String email;
+  final String otp;
+  VerifyOtpEvent({required this.email, required this.otp});
+}
 
 class SignUpEvent extends AuthEvent {
   final String name;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shell_flow_mobile_app/features/auth/presentation/pages/otp_page.dart';
 import 'package:shell_flow_mobile_app/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:shell_flow_mobile_app/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/presentation/pages/dashboard.dart';
@@ -9,6 +10,7 @@ class AppRoutes {
   static const signUp = '/sign-up';
   static const homePageRoutes = '/dashboard';
   static const profile = '/profile';
+  static const otpPage = '/otp-page'; 
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -17,10 +19,19 @@ class AppRoutes {
 
       case signUp:
         return MaterialPageRoute(builder: (_) => const SignUpPage());
+
       case homePageRoutes:
         return MaterialPageRoute(builder: (_) => const Dashboard());
+
       case profile:
         return MaterialPageRoute(builder: (_) => const ProfilePage());
+
+      case otpPage:
+        final email = settings.arguments as String?;
+        if (email == null) {
+          throw Exception('Email is required for OTP page');
+        }
+        return MaterialPageRoute(builder: (_) => OtpPage(email: email));
 
       default:
         return MaterialPageRoute(
