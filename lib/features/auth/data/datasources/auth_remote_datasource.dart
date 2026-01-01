@@ -6,7 +6,10 @@ import 'package:shell_flow_mobile_app/features/auth/domain/entities/user.dart';
 abstract class AuthRemoteDatasource {
   Future<User> signUpUser(User user);
   Future<User> signInUser(User user);
+  Future<User> signInWithPhone();
   Future<User> signInWithGoogle();
+  Future<User> signOut();
+  Future<User> verifyOTP({required String email, required String token});
 }
 
 class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
@@ -19,9 +22,30 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   }
 
   @override
-  Future<User> signUpUser(User user) {
-    // TODO: implement signUpUser
-    throw UnimplementedError();
+  Future<User> signUpUser(User user) async {
+    try {
+      // 1. Supabase Auth Sign Up
+      final response = await supabaseClient.auth.signUp(
+        email: user.email,
+        password:
+            user.password ?? '', // Assumes password is in your User entity
+        data: {
+          'full_name': user.name, // Storing name in metadata
+        },
+      );
+
+      if (response.user == null) {
+        throw const supabase.AuthException('Registration failed, user is null');
+      }
+
+      // 2. Map the Supabase response back to your User entity
+      return _mapSupabaseUser(response.user!);
+    } on supabase.AuthException catch (e) {
+      // Handle Supabase specific errors (e.g., user already exists)
+      throw Exception(e.message);
+    } catch (e) {
+      throw Exception("An unexpected error occurred: $e");
+    }
   }
 
   @override
@@ -35,7 +59,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
       // 2. Step 1: Authentication (Identity)
       // This triggers the native account selector
-      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
+      final GoogleSignInAccount googleUser = await GoogleSignIn.instance
+          .authenticate();
 
       // 3. Step 2: Obtain ID Token (Identity)
       final googleAuth = googleUser.authentication;
@@ -44,7 +69,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       // 4. Step 3: Obtain Access Token (Authorization)
       // Access tokens are now handled by the authorizationClient in v7+
       final scopes = ['email', 'profile'];
-      final authorization = await googleUser.authorizationClient.authorizeScopes(scopes);
+      final authorization = await googleUser.authorizationClient
+          .authorizeScopes(scopes);
       final accessToken = authorization.accessToken;
 
       if (idToken == null) {
@@ -74,5 +100,28 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       // Supabase automatically gets the name from Google and puts it in metadata
       name: user.userMetadata?['full_name'] ?? '',
     );
+  }
+
+  @override
+  Future<User> signInWithPhone() {
+    // TODO: implement signInWithPhone
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<User> signOut() {
+    // TODO: implement signOut
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<User> verifyOTP({required String email, required String token}) async {
+    final response = await supabaseClient.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: supabase.OtpType.signup,
+    );
+    if (response.user == null) throw Exception("Verification failed");
+    return _mapSupabaseUser(response.user!);
   }
 }

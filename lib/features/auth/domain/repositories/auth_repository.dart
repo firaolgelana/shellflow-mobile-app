@@ -7,4 +7,6 @@ abstract class AuthRepository {
   Future<Either<Failure, User>> singInUser(User user);
   Future<Either<Failure, void>> signOUt();
   Future<Either<Failure, User>> singInWithGoogle();
+  Future<Either<Failure, User>> singInWithPhone();
+  Future<Either<Failure, User>> verifyOTP(String email, String token);
 }
