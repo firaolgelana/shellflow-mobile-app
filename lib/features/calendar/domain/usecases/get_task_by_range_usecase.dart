@@ -6,7 +6,7 @@ import 'package:shell_flow_mobile_app/features/calendar/domain/repositories/cale
 class GetTaskByRangeUsecase {
   final CalendarRepository repository;
   GetTaskByRangeUsecase({required this.repository});
-  Future<Either<Failure, CalendarTask>> call(CalendarTask task) {
+  Future<Either<Failure, List<CalendarTask>>> call(CalendarTask task) {
     return repository.getTaskByRange(task);
   }
 }

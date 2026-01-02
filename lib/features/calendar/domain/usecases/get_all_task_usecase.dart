@@ -6,7 +6,7 @@ import 'package:shell_flow_mobile_app/features/calendar/domain/repositories/cale
 class GetAllTaskUsecase {
   final CalendarRepository repository;
   GetAllTaskUsecase({required this.repository});
-  Future<Either<Failure, CalendarTask>> call() {
+  Future<Either<Failure, List<CalendarTask>>> call() {
     return repository.getAllTask();
   }
 }

@@ -6,9 +6,9 @@ class CalendarTask extends Equatable {
   final String? description;
   final DateTime startTime;
   final DateTime endTime;
-  final String creatorId; // Link to the Auth User ID
-  final List<String> participantIds; // Social aspect: IDs of invited friends
-  final String color; // Hex code for the "pills" (e.g., #50A8EB)
+  final String creatorId; 
+  final List<String> participantIds; 
+  final String color; 
   final bool isCompleted;
 
   const CalendarTask({
