@@ -7,6 +7,7 @@ abstract class CalendarRepository {
   Future<Either<Failure, void>> deleteTask(String taskId);
   Future<Either<Failure, CalendarTask>> updateTask(CalendarTask task);
   Future<Either<Failure, void>> toggleTask(String taskId);
-  Future<Either<Failure, List<CalendarTask>>> getTaskByRange(CalendarTask task);
+  Future<Either<Failure, List<CalendarTask>>> getTaskByRange(DateTime start, DateTime end);
   Future<Either<Failure, List<CalendarTask>>> getAllTask();
+  Future<Either<Failure, List<CalendarTask>>> getTaskById(String taskId);
 }

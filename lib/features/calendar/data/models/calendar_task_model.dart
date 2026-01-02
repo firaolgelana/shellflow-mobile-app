@@ -11,9 +11,9 @@ class CalendarTaskModel extends CalendarTask {
     super.participantIds,
     super.color,
     super.isCompleted,
+    super.status
   });
 
-  /// From JSON (API / Supabase)
   factory CalendarTaskModel.fromJson(Map<String, dynamic> json) {
     return CalendarTaskModel(
       id: json['id'] as String,
@@ -25,6 +25,7 @@ class CalendarTaskModel extends CalendarTask {
       participantIds: List<String>.from(json['participant_ids'] ?? []),
       color: json['color'] ?? '#50A8EB',
       isCompleted: json['is_completed'] ?? false,
+      status: json['status'] ?? 'pending'
     );
   }
 
@@ -40,31 +41,8 @@ class CalendarTaskModel extends CalendarTask {
       'participant_ids': participantIds,
       'color': color,
       'is_completed': isCompleted,
+      'status': status
     };
   }
 
-  /// Useful for updates (toggle completion, edit task, etc.)
-  CalendarTaskModel copyWith({
-    String? id,
-    String? title,
-    String? description,
-    DateTime? startTime,
-    DateTime? endTime,
-    String? creatorId,
-    List<String>? participantIds,
-    String? color,
-    bool? isCompleted,
-  }) {
-    return CalendarTaskModel(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      startTime: startTime ?? this.startTime,
-      endTime: endTime ?? this.endTime,
-      creatorId: creatorId ?? this.creatorId,
-      participantIds: participantIds ?? this.participantIds,
-      color: color ?? this.color,
-      isCompleted: isCompleted ?? this.isCompleted,
-    );
-  }
 }
