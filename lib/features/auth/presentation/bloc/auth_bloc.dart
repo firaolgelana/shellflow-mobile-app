@@ -63,8 +63,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoadingState());
-    final user = User(email: event.email, password: event.password);
-    final result = await _signinUsecase(user);
+    final result = await _signinUsecase(email: event.email, password: event.password);
     result.fold(
       (failure) => emit(AuthErrorState(message: failure.message)),
       (user) => emit(SignedInState(user: user)),

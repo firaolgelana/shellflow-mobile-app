@@ -6,7 +6,7 @@ import 'package:shell_flow_mobile_app/features/auth/domain/repositories/auth_rep
 class SigninUsecase {
   final AuthRepository repository;
   SigninUsecase({required this.repository});
-  Future<Either<Failure, User>> call(User user) {
-    return repository.singInUser(user);
+  Future<Either<Failure, User>> call({required String email, required String password}) {
+    return repository.signInWithEmailPassword(email: email, password: password);
   }
 }

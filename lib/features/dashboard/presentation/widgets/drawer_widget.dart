@@ -51,7 +51,11 @@ Widget drawerWidget(BuildContext context) {
             Navigator.pop(context);
             Navigator.pushNamed(context, AppRoutes.profile);
           }),
-        const ListTile(leading: Icon(Icons.task), title: Text('Tasks')),
+        ListTile(leading: const Icon(Icons.task), title: const Text('Tasks'),
+          onTap: (){
+
+          },
+        ),
         const ListTile(leading: Icon(Icons.settings), title: Text('Settings')),
         const ListTile(
           leading: Icon(Icons.featured_play_list),

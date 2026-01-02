@@ -19,7 +19,8 @@ class _EmailSignUpState extends State<EmailSignUp> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   // 2. State for Password Visibility
   bool _obscurePassword = true;
@@ -67,7 +68,11 @@ class _EmailSignUpState extends State<EmailSignUp> {
               children: [
                 const Text(
                   "Register with Email",
-                  style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 25),
 
@@ -76,7 +81,8 @@ class _EmailSignUpState extends State<EmailSignUp> {
                   controller: _nameController,
                   label: "Full Name",
                   icon: Icons.person,
-                  validator: (value) => value!.isEmpty ? "Please enter your name" : null,
+                  validator: (value) =>
+                      value!.isEmpty ? "Please enter your name" : null,
                 ),
                 const SizedBox(height: 15),
 
@@ -86,8 +92,15 @@ class _EmailSignUpState extends State<EmailSignUp> {
                   label: "Email Address",
                   icon: Icons.email,
                   validator: (value) {
-                    if (value == null || value.isEmpty) return "Please enter an email";
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return "Enter a valid email";
+                    final email = value?.trim();
+                    if (email == null || email.isEmpty) {
+                      return "Please enter an email";
+                    }
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(email)) {
+                      return "Enter a valid email";
+                    }
                     return null;
                   },
                 ),
@@ -100,8 +113,11 @@ class _EmailSignUpState extends State<EmailSignUp> {
                   icon: Icons.lock,
                   isPassword: true,
                   obscureText: _obscurePassword,
-                  validator: (value) => value!.length < 6 ? "Password must be at least 6 chars" : null,
-                  toggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
+                  validator: (value) => value!.length < 6
+                      ? "Password must be at least 6 chars"
+                      : null,
+                  toggleVisibility: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
                 const SizedBox(height: 15),
 
@@ -114,12 +130,16 @@ class _EmailSignUpState extends State<EmailSignUp> {
                   obscureText: _obscureConfirmPassword,
                   validator: (value) {
                     if (value!.isEmpty) return "Please confirm your password";
-                    if (value != _passwordController.text) return "Passwords do not match";
+                    if (value != _passwordController.text) {
+                      return "Passwords do not match";
+                    }
                     return null;
                   },
-                  toggleVisibility: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                  toggleVisibility: () => setState(
+                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                  ),
                 ),
-                
+
                 const SizedBox(height: 25),
 
                 // SIGN UP BUTTON
@@ -130,27 +150,38 @@ class _EmailSignUpState extends State<EmailSignUp> {
                           // 4. Trigger Validation
                           if (_formKey.currentState!.validate()) {
                             context.read<AuthBloc>().add(
-                                  SignUpEvent(
-                                    name: _nameController.text.trim(),
-                                    email: _emailController.text.trim(),
-                                    password: _passwordController.text.trim(),
-                                  ),
-                                );
+                              SignUpEvent(
+                                name: _nameController.text.trim(),
+                                email: _emailController.text.trim(),
+                                password: _passwordController.text.trim(),
+                              ),
+                            );
                           }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.blueshade,
                           minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        child: const Text("Create Account", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          "Create Account",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
 
                 const SizedBox(height: 20),
                 const Row(
                   children: [
                     Expanded(child: Divider(color: Colors.white12)),
-                    Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("OR", style: TextStyle(color: Colors.grey))),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text("OR", style: TextStyle(color: Colors.grey)),
+                    ),
                     Expanded(child: Divider(color: Colors.white12)),
                   ],
                 ),
@@ -158,34 +189,44 @@ class _EmailSignUpState extends State<EmailSignUp> {
 
                 // GOOGLE BUTTON
                 OutlinedButton.icon(
-                  onPressed: () => context.read<AuthBloc>().add(SignInWithGoogleEvent()),
+                  onPressed: () =>
+                      context.read<AuthBloc>().add(SignInWithGoogleEvent()),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
                     side: const BorderSide(color: Colors.white12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  icon: const FaIcon(FontAwesomeIcons.google, color: Colors.red, size: 20),
-                  label: const Text("Continue with Google", style: TextStyle(color: Colors.white)),
-                ),
-                const SizedBox(height: 16,),
-                Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "have an account",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, AppRoutes.signIn);
-                    },
-                    child: const Text(
-                      'SignIn',
-                      style: TextStyle(color: Colors.blue),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                ],
-              ),
+                  icon: const FaIcon(
+                    FontAwesomeIcons.google,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                  label: const Text(
+                    "Continue with Google",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "have an account",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.signIn);
+                      },
+                      child: const Text(
+                        'SignIn',
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -195,5 +236,4 @@ class _EmailSignUpState extends State<EmailSignUp> {
   }
 
   // 5. Helper Widget using TextFormField
-  
 }

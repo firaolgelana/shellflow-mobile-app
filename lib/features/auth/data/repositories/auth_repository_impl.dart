@@ -31,10 +31,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
   // ================= SIGN IN =================
   @override
-  Future<Either<Failure, User>> singInUser(User user) async {
+  Future<Either<Failure, User>> signInWithEmailPassword({required String email, required String password}) async {
     if (await networkInfo.isConnected) {
       try {
-        final result = await remoteDatasource.signInUser(user);
+        final result = await remoteDatasource.signInWithEmailPassword(email: email, password: password);
         return Right(result);
       } catch (e) {
         return Left(Failure(message: e.toString()));
