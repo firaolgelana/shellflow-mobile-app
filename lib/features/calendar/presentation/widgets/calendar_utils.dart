@@ -279,7 +279,7 @@ static void showAddEventDialog({
                   onPressed: () {
                     if (titleController.text.isNotEmpty) {
                       final Meeting newMeeting = Meeting(
-                        id: DateTime.now().millisecondsSinceEpoch,
+                        id: null,
                         eventName: titleController.text,
                         description: descController.text, // Save Description
                         from: startTime, // Use updated start time

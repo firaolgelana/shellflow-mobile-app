@@ -41,7 +41,7 @@ class MeetingDataSource extends CalendarDataSource {
   bool isAllDay(int index) => _getMeetingData(index).isAllDay;
 
   @override
-  Object getId(int index) => _getMeetingData(index).id;
+  // Object getId(int index) => _getMeetingData(index).id;
 
   @override
   Object? convertAppointmentToObject(Object? customData, Appointment appointment) {

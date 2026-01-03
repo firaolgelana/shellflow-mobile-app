@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shell_flow_mobile_app/features/calendar/presentation/bloc/calendar_bloc.dart';
 import 'package:shell_flow_mobile_app/features/calendar/presentation/pages/calendar_page.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/presentation/pages/home_page.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/presentation/widgets/nav_bar_widget.dart';
+import 'package:shell_flow_mobile_app/injection_container.dart';
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
 
@@ -16,7 +19,10 @@ class _DashboardState extends State<Dashboard> {
     const Center(child: HomePage()),
     const Center(child: Text('User Page')),
     const Center(child: Text('Chat Page')),
-    const Center(child: CalendarPage()),
+    BlocProvider(
+      create: (context) => sl<CalendarBloc>()..add(LoadAllTasksEvent()),
+      child: const CalendarPage(),
+    ),
   ];
 
   @override

@@ -1,24 +1,24 @@
-// ... imports ...
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shell_flow_mobile_app/features/calendar/presentation/adabters/meeting_data_source.dart';
+
+// 1. Import Domain Entity
+import 'package:shell_flow_mobile_app/features/calendar/domain/entities/calendar_task.dart';
+// 2. Import Bloc & Events
+import 'package:shell_flow_mobile_app/features/calendar/presentation/bloc/calendar_bloc.dart';
+// 3. Import UI Model
 import 'package:shell_flow_mobile_app/features/calendar/presentation/models/meeting_model.dart';
 
 class CalendarEventHandler {
   
-  // ... (keep pickDateAndJump and showViewPicker) ...
-
-  // Unified Dialog for ADDING and EDITING
   static void showEventDialog({
     required BuildContext context,
-    required MeetingDataSource dataSource,
+    required CalendarBloc bloc, // We only need Bloc, not DataSource
     DateTime? selectedDate,
-    Meeting? existingMeeting, // <--- New parameter
+    Meeting? existingMeeting,
   }) {
     final bool isEditing = existingMeeting != null;
     
-    // Initialize Logic: Use existing data OR defaults
+    // Initialize Controllers
     final TextEditingController titleController = TextEditingController(
       text: isEditing ? existingMeeting.eventName : ''
     );
@@ -45,7 +45,6 @@ class CalendarEventHandler {
                 builder: (context, child) {
                   return Theme(
                     data: Theme.of(context).copyWith(
-                      // ... (Keep your existing dark theme settings) ...
                        timePickerTheme: TimePickerThemeData(
                         backgroundColor: const Color(0xFF1A1F23),
                         hourMinuteTextColor: Colors.white,
@@ -73,9 +72,13 @@ class CalendarEventHandler {
                 setState(() {
                   final DateTime base = isStartTime ? startTime : endTime;
                   final DateTime newDate = DateTime(base.year, base.month, base.day, pickedTime.hour, pickedTime.minute);
+                  
                   if (isStartTime) {
                     startTime = newDate;
-                    if (endTime.isBefore(startTime)) endTime = startTime.add(const Duration(hours: 1));
+                    // Auto-adjust end time if it becomes before start time
+                    if (endTime.isBefore(startTime)) {
+                      endTime = startTime.add(const Duration(hours: 1));
+                    }
                   } else {
                     endTime = newDate;
                   }
@@ -85,7 +88,8 @@ class CalendarEventHandler {
 
             return AlertDialog(
               backgroundColor: const Color(0xFF1A1F23),
-              // Header Row with Title and Delete Icon
+              
+              // --- HEADER ROW (Title + Delete) ---
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -97,24 +101,29 @@ class CalendarEventHandler {
                     IconButton(
                       icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                       onPressed: () {
-                         // Confirm Delete
-                         dataSource.deleteMeeting(existingMeeting);
+                         // 1. DELETE LOGIC via BLoC
+                         // Ensure ID is cast to String safely
+                         final String taskId = existingMeeting.id as String;
+                         bloc.add(DeleteTaskEvent(taskId));
+                         
                          Navigator.pop(context);
                       },
                     )
                 ],
               ),
+              
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ... (Keep your Time Row and TextFields exactly as before) ...
-                    // Just ensuring they use the 'startTime', 'endTime' variables defined above
+                    // Date Display
                      Text(
                       DateFormat('EEEE, MMMM d, y').format(startTime),
                       style: const TextStyle(color: Colors.white70, fontSize: 13),
                     ),
                     const SizedBox(height: 15),
+                    
+                    // Time Selection Row
                     Row(
                       children: [
                         Expanded(
@@ -149,13 +158,17 @@ class CalendarEventHandler {
                       ],
                     ),
                     const SizedBox(height: 20),
+                    
+                    // Title Input
                     TextField(
                       controller: titleController,
                       style: const TextStyle(color: Colors.white),
                       decoration: const InputDecoration(labelText: "Title", labelStyle: TextStyle(color: Colors.white54), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)), focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.tealAccent))),
                     ),
-                     const SizedBox(height: 10),
-                     TextField(
+                    const SizedBox(height: 10),
+                     
+                    // Description Input
+                    TextField(
                       controller: descController,
                       style: const TextStyle(color: Colors.white),
                       maxLines: 3, minLines: 1,
@@ -164,6 +177,8 @@ class CalendarEventHandler {
                   ],
                 ),
               ),
+              
+              // --- ACTIONS ---
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -173,26 +188,26 @@ class CalendarEventHandler {
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF004D56)),
                   onPressed: () {
                     if (titleController.text.isNotEmpty) {
+                      
+                      // 2. BUILD DOMAIN ENTITY
+                      final CalendarTask task = CalendarTask(
+                        // If Editing: Use existing ID (String). If New: null.
+                        id: isEditing ? (existingMeeting.id as String) : null,
+                        title: titleController.text,
+                        description: descController.text,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isAllDay: false,
+                        color: const Color(0xFF0F8644), // Default Green
+                      );
+
+                      // 3. DISPATCH EVENT TO BLOC
                       if (isEditing) {
-                        // UPDATE LOGIC
-                        existingMeeting.eventName = titleController.text;
-                        existingMeeting.description = descController.text;
-                        existingMeeting.from = startTime;
-                        existingMeeting.to = endTime;
-                        dataSource.updateMeeting(existingMeeting);
+                        bloc.add(UpdateTaskEvent(task));
                       } else {
-                        // ADD LOGIC
-                        final Meeting newMeeting = Meeting(
-                          id: DateTime.now().millisecondsSinceEpoch,
-                          eventName: titleController.text,
-                          description: descController.text,
-                          from: startTime,
-                          to: endTime,
-                          background: const Color(0xFF0F8644),
-                          isAllDay: false,
-                        );
-                        dataSource.addMeeting(newMeeting);
+                        bloc.add(CreateTaskEvent(task));
                       }
+                      
                       Navigator.pop(context);
                     }
                   },

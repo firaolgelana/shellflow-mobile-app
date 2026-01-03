@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shell_flow_mobile_app/features/calendar/domain/entities/calendar_task.dart';
 
 class Meeting {
   Meeting({
-    required this.id,
+    this.id, // Nullable for new tasks, String (UUID) for existing
     required this.eventName,
     required this.from,
     required this.to,
@@ -11,31 +12,45 @@ class Meeting {
     required this.isAllDay,
   });
 
-  Object id;
+  /// ID is String? because Supabase uses UUID strings. 
+  /// It is null when creating a new task that hasn't been saved yet.
+  String? id; 
   String eventName;
+  String description;
   DateTime from;
   DateTime to;
   Color background;
-  String description;
   bool isAllDay;
 
-  /// Helper to generate dummy data
-  static List<Meeting> getInitialData() {
-    final List<Meeting> meetings = <Meeting>[];
-    final DateTime today = DateTime.now();
-    final DateTime startTime = DateTime(today.year, today.month, today.day, 9);
-    final DateTime endTime = startTime.add(const Duration(hours: 2));
-
-    meetings.add(
-      Meeting(
-        id: 1,
-        eventName: 'Conference',
-        from: startTime,
-        to: endTime,
-        background: const Color(0xFF0F8644),
-        isAllDay: false,
-      ),
+  // ---------------------------------------------------------------------------
+  // 1. CONVERT DOMAIN ENTITY -> UI MODEL
+  // Used when reading data from Bloc/Repository to show in SfCalendar
+  // ---------------------------------------------------------------------------
+  factory Meeting.fromEntity(CalendarTask task) {
+    return Meeting(
+      id: task.id,
+      eventName: task.title,
+      description: task.description,
+      from: task.startTime,
+      to: task.endTime,
+      background: task.color,
+      isAllDay: task.isAllDay,
     );
-    return meetings;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. CONVERT UI MODEL -> DOMAIN ENTITY
+  // Used when saving/updating data from the UI to send to Bloc
+  // ---------------------------------------------------------------------------
+  CalendarTask toEntity() {
+    return CalendarTask(
+      id: id,
+      title: eventName,
+      description: description,
+      startTime: from,
+      endTime: to,
+      isAllDay: isAllDay,
+      color: background,
+    );
   }
 }
