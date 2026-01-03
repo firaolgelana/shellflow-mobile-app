@@ -1,32 +1,42 @@
-import 'package:shell_flow_mobile_app/features/calendar/domain/entities/calendar_task.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shell_flow_mobile_app/features/calendar/data/models/calendar_task_model.dart';
 
 abstract class CalendarRemoteDatasource {
-  Future<CalendarTask> createTask(CalendarTask task);
+  /// Accepts Model, Returns Model
+  Future<CalendarTaskModel> createTask(CalendarTaskModel task);
+  
   Future<void> deleteTask(String taskId);
-  Future<CalendarTask> updateTask(CalendarTask task);
-  Future<CalendarTask> getTaskById(String taskId);
-  Future<List<CalendarTask>> getAllTasks();
-  Future<List<CalendarTask>> getTasksByRange(DateTime start, DateTime end);
+  
+  Future<CalendarTaskModel> updateTask(CalendarTaskModel task);
+  
+  Future<CalendarTaskModel> getTaskById(String taskId);
+  
+  Future<List<CalendarTaskModel>> getAllTasks();
+  
+  Future<List<CalendarTaskModel>> getTasksByRange(DateTime start, DateTime end);
 }
-
 
 class CalendarRemoteDatasourceImpl implements CalendarRemoteDatasource {
   final SupabaseClient supabase;
 
   CalendarRemoteDatasourceImpl(this.supabase);
 
-  static const _table = 'tasks';
+  // Use the new clean table we discussed
+  static const _table = 'calendar_tasks';
 
   @override
-  Future<CalendarTask> createTask(CalendarTask task) async {
+  Future<CalendarTaskModel> createTask(CalendarTaskModel task) async {
+    // 1. Get current user ID
+    final userId = supabase.auth.currentUser!.id;
+
+    // 2. Use the Model's toJson method (pass userId)
     final response = await supabase
         .from(_table)
-        .insert(_toJson(task))
+        .insert(task.toJson(userId: userId))
         .select()
         .single();
 
+    // 3. Return Model
     return CalendarTaskModel.fromJson(response);
   }
 
@@ -36,11 +46,13 @@ class CalendarRemoteDatasourceImpl implements CalendarRemoteDatasource {
   }
 
   @override
-  Future<CalendarTask> updateTask(CalendarTask task) async {
+  Future<CalendarTaskModel> updateTask(CalendarTaskModel task) async {
+    final userId = supabase.auth.currentUser!.id;
+
     final response = await supabase
         .from(_table)
-        .update(_toJson(task))
-        .eq('id', task.id)
+        .update(task.toJson(userId: userId))
+        .eq('id', task.id!) // Ensure ID exists for update
         .select()
         .single();
 
@@ -48,7 +60,7 @@ class CalendarRemoteDatasourceImpl implements CalendarRemoteDatasource {
   }
 
   @override
-  Future<CalendarTask> getTaskById(String taskId) async {
+  Future<CalendarTaskModel> getTaskById(String taskId) async {
     final response = await supabase
         .from(_table)
         .select()
@@ -59,22 +71,22 @@ class CalendarRemoteDatasourceImpl implements CalendarRemoteDatasource {
   }
 
   @override
-  Future<List<CalendarTask>> getAllTasks() async {
+  Future<List<CalendarTaskModel>> getAllTasks() async {
     final userId = supabase.auth.currentUser!.id;
 
     final response = await supabase
         .from(_table)
         .select()
         .eq('user_id', userId)
-        .order('date');
+        .order('start_time'); // Order by actual time
 
-    return response
-        .map<CalendarTask>((json) => CalendarTaskModel.fromJson(json))
+    return (response as List)
+        .map((json) => CalendarTaskModel.fromJson(json))
         .toList();
   }
 
   @override
-  Future<List<CalendarTask>> getTasksByRange(
+  Future<List<CalendarTaskModel>> getTasksByRange(
     DateTime start,
     DateTime end,
   ) async {
@@ -84,27 +96,13 @@ class CalendarRemoteDatasourceImpl implements CalendarRemoteDatasource {
         .from(_table)
         .select()
         .eq('user_id', userId)
-        .gte('date', start.toIso8601String())
-        .lte('date', end.toIso8601String())
-        .order('date');
+        // Filter where start_time is between start and end
+        .gte('start_time', start.toIso8601String())
+        .lte('start_time', end.toIso8601String())
+        .order('start_time');
 
-    return response
-        .map<CalendarTask>((json) => CalendarTaskModel.fromJson(json))
+    return (response as List)
+        .map((json) => CalendarTaskModel.fromJson(json))
         .toList();
-  }
-
-  Map<String, dynamic> _toJson(CalendarTask task) {
-    return {
-      'id': task.id,
-      'user_id': supabase.auth.currentUser!.id,
-      'title': task.title,
-      'description': task.description,
-      'date': task.startTime.toIso8601String().split('T').first,
-      'start_time': task.startTime.toIso8601String(),
-      'duration':
-          task.endTime.difference(task.startTime).inMinutes,
-      'status': task.isCompleted ? 'completed' : 'pending',
-      'category': 'work',
-    };
   }
 }

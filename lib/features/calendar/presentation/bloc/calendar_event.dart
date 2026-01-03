@@ -4,7 +4,7 @@ abstract class CalendarEvent extends Equatable {
   const CalendarEvent();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class LoadAllTasksEvent extends CalendarEvent {}
@@ -16,7 +16,7 @@ class LoadTasksByRangeEvent extends CalendarEvent {
   const LoadTasksByRangeEvent(this.start, this.end);
 
   @override
-  List<Object?> get props => [start, end];
+  List<Object> get props => [start, end];
 }
 
 class CreateTaskEvent extends CalendarEvent {
@@ -25,7 +25,7 @@ class CreateTaskEvent extends CalendarEvent {
   const CreateTaskEvent(this.task);
 
   @override
-  List<Object?> get props => [task];
+  List<Object> get props => [task];
 }
 
 class UpdateTaskEvent extends CalendarEvent {
@@ -34,7 +34,7 @@ class UpdateTaskEvent extends CalendarEvent {
   const UpdateTaskEvent(this.task);
 
   @override
-  List<Object?> get props => [task];
+  List<Object> get props => [task];
 }
 
 class DeleteTaskEvent extends CalendarEvent {
@@ -43,14 +43,5 @@ class DeleteTaskEvent extends CalendarEvent {
   const DeleteTaskEvent(this.taskId);
 
   @override
-  List<Object?> get props => [taskId];
-}
-
-class ToggleTaskEvent extends CalendarEvent {
-  final String taskId;
-
-  const ToggleTaskEvent(this.taskId);
-
-  @override
-  List<Object?> get props => [taskId];
+  List<Object> get props => [taskId];
 }

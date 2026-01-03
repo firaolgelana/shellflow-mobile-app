@@ -1,48 +1,55 @@
-import 'package:shell_flow_mobile_app/features/calendar/domain/entities/calendar_task.dart';
+import 'dart:ui';
+import '../../domain/entities/calendar_task.dart';
 
 class CalendarTaskModel extends CalendarTask {
   const CalendarTaskModel({
-    required super.id,
+    super.id,
     required super.title,
-    super.description,
+    required super.description,
     required super.startTime,
     required super.endTime,
-    required super.creatorId,
-    super.participantIds,
-    super.color,
-    super.isCompleted,
-    super.status
+    required super.isAllDay,
+    required super.color,
   });
 
+  // FROM Supabase JSON
   factory CalendarTaskModel.fromJson(Map<String, dynamic> json) {
     return CalendarTaskModel(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String?,
-      startTime: DateTime.parse(json['start_time']),
-      endTime: DateTime.parse(json['end_time']),
-      creatorId: json['creator_id'] as String,
-      participantIds: List<String>.from(json['participant_ids'] ?? []),
-      color: json['color'] ?? '#50A8EB',
-      isCompleted: json['is_completed'] ?? false,
-      status: json['status'] ?? 'pending'
+      id: json['id'],
+      title: json['title'],
+      description: json['description'] ?? '',
+      startTime: DateTime.parse(json['start_time']).toLocal(),
+      endTime: DateTime.parse(json['end_time']).toLocal(),
+      isAllDay: json['is_all_day'] ?? false,
+      // Restore Color from Int, default to Green if null
+      color: Color(json['color_value'] ?? 0xFF0F8644), 
     );
   }
 
-  /// To JSON (API / Supabase)
-  Map<String, dynamic> toJson() {
+  // TO Supabase JSON
+  Map<String, dynamic> toJson({required String userId}) {
     return {
-      'id': id,
+      if (id != null) 'id': id,
+      'user_id': userId, // Required by Supabase
       'title': title,
       'description': description,
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
-      'creator_id': creatorId,
-      'participant_ids': participantIds,
-      'color': color,
-      'is_completed': isCompleted,
-      'status': status
+      'is_all_day': isAllDay,
+      'color_value': color.value, // Save Color as Int
     };
   }
 
+  // Helper to convert Domain Entity -> Data Model
+  factory CalendarTaskModel.fromEntity(CalendarTask task) {
+    return CalendarTaskModel(
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      startTime: task.startTime,
+      endTime: task.endTime,
+      isAllDay: task.isAllDay,
+      color: task.color,
+    );
+  }
 }
