@@ -7,6 +7,7 @@ class Meeting {
     required this.from,
     required this.to,
     required this.background,
+    this.description = '',
     required this.isAllDay,
   });
 
@@ -15,6 +16,7 @@ class Meeting {
   DateTime from;
   DateTime to;
   Color background;
+  String description;
   bool isAllDay;
 
   /// Helper to generate dummy data
@@ -23,7 +25,7 @@ class Meeting {
     final DateTime today = DateTime.now();
     final DateTime startTime = DateTime(today.year, today.month, today.day, 9);
     final DateTime endTime = startTime.add(const Duration(hours: 2));
-    
+
     meetings.add(
       Meeting(
         id: 1,

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:shell_flow_mobile_app/features/calendar/presentation/adabters/meeting_data_source.dart';
 import 'package:shell_flow_mobile_app/features/calendar/presentation/models/meeting_model.dart';
 import 'package:shell_flow_mobile_app/features/calendar/presentation/widgets/calendar_utils.dart';
+import 'package:shell_flow_mobile_app/features/calendar/presentation/widgets/calendar_event_handler.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -116,20 +117,36 @@ class _CalendarPageState extends State<CalendarPage> {
           });
         },
         
+// Inside _CalendarPageState build method:
+
         onTap: (CalendarTapDetails details) {
-          if (details.targetElement == CalendarElement.calendarCell && details.date != null) {
+          // 1. CLICKED AN EXISTING APPOINTMENT (EDIT MODE)
+          if (details.targetElement == CalendarElement.appointment) {
+            final Meeting meeting = details.appointments![0];
+            
+            CalendarEventHandler.showEventDialog(
+              context: context,
+              dataSource: _dataSource,
+              existingMeeting: meeting, // <--- Pass the existing meeting
+              selectedDate: meeting.from,
+            );
+          } 
+          // 2. CLICKED AN EMPTY CELL (ADD MODE)
+          else if (details.targetElement == CalendarElement.calendarCell && details.date != null) {
+            
             if (_currentView == CalendarView.month) {
-              setState(() {
+               // Month view navigation logic...
+               setState(() {
                 _currentView = CalendarView.day;
                 _calendarController.view = CalendarView.day;
                 _calendarController.displayDate = details.date;
               });
             } else {
-              // Open Add Event Dialog from Utils
-              CalendarUtils.showAddEventDialog(
-                context: context, 
-                selectedDate: details.date!, 
-                dataSource: _dataSource
+              // Open Dialog in Create Mode (existingMeeting is null by default)
+              CalendarEventHandler.showEventDialog(
+                context: context,
+                dataSource: _dataSource,
+                selectedDate: details.date!,
               );
             }
           }

@@ -84,72 +84,220 @@ class CalendarUtils {
       controller.displayDate = picked;
     }
   }
-
-  // 2. Add Event Dialog logic
-  static void showAddEventDialog({
+//event add dialog
+static void showAddEventDialog({
     required BuildContext context,
     required DateTime selectedDate,
     required MeetingDataSource dataSource,
   }) {
     final TextEditingController titleController = TextEditingController();
-    final DateTime startTime = selectedDate;
-    final DateTime endTime = selectedDate.add(const Duration(hours: 1));
+    final TextEditingController descController = TextEditingController(); // Description Controller
+    
+    // Mutable variables for time logic
+    DateTime startTime = selectedDate;
+    DateTime endTime = selectedDate.add(const Duration(hours: 1));
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F23),
-        title: const Text("New Event", style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "${DateFormat('EEE, MMM d').format(startTime)}  •  ${DateFormat('h:mm a').format(startTime)} - ${DateFormat('h:mm a').format(endTime)}",
-              style: const TextStyle(color: Colors.tealAccent, fontSize: 14),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: titleController,
-              autofocus: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: "Add Title",
-                hintStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24)),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.tealAccent)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: Colors.white60)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF004D56)),
-            onPressed: () {
-              if (titleController.text.isNotEmpty) {
-                final Meeting newMeeting = Meeting(
-                  id: DateTime.now().millisecondsSinceEpoch,
-                  eventName: titleController.text,
-                  from: startTime,
-                  to: endTime,
-                  background: const Color(0xFF0F8644),
-                  isAllDay: false,
-                );
-                dataSource.addMeeting(newMeeting);
-                Navigator.pop(context);
+      builder: (context) {
+        // StatefulBuilder allows us to call setState INSIDE the dialog
+        return StatefulBuilder(
+          builder: (context, setState) {
+            
+            // Helper function to pick time
+            Future<void> pickTime({required bool isStartTime}) async {
+              final TimeOfDay? pickedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.fromDateTime(isStartTime ? startTime : endTime),
+                builder: (context, child) {
+                  // Apply your Dark Theme to the TimePicker
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      timePickerTheme: TimePickerThemeData(
+                        backgroundColor: const Color(0xFF1A1F23),
+                        hourMinuteTextColor: Colors.white,
+                        dayPeriodTextColor: Colors.tealAccent,
+                        dialHandColor: const Color(0xFF004D56),
+                        dialBackgroundColor: Colors.white10,
+                        helpTextStyle: const TextStyle(color: Colors.white),
+                        entryModeIconColor: Colors.tealAccent,
+                        cancelButtonStyle: ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.white70)),
+                        confirmButtonStyle: ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.tealAccent)),
+                      ),
+                      colorScheme: const ColorScheme.dark(
+                        surface: Color(0xFF1A1F23),
+                        onSurface: Colors.white,
+                        primary: Color(0xFF004D56),
+                        onPrimary: Colors.white,
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+
+              if (pickedTime != null) {
+                setState(() {
+                  final DateTime baseDate = isStartTime ? startTime : endTime;
+                  final DateTime newDateTime = DateTime(
+                    baseDate.year,
+                    baseDate.month,
+                    baseDate.day,
+                    pickedTime.hour,
+                    pickedTime.minute,
+                  );
+
+                  if (isStartTime) {
+                    startTime = newDateTime;
+                    // Auto-adjust end time if it becomes before start time
+                    if (endTime.isBefore(startTime)) {
+                      endTime = startTime.add(const Duration(hours: 1));
+                    }
+                  } else {
+                    endTime = newDateTime;
+                  }
+                });
               }
-            },
-            child: const Text("Save", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+            }
+
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1A1F23),
+              title: const Text("New Event", style: TextStyle(color: Colors.white)),
+              content: SingleChildScrollView( // Added scroll for small screens
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- DATE DISPLAY ---
+                    Text(
+                      DateFormat('EEEE, MMMM d, y').format(startTime),
+                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                    const SizedBox(height: 15),
+
+                    // --- ADJUSTABLE TIME ROW ---
+                    Row(
+                      children: [
+                        // Start Time Button
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => pickTime(isStartTime: true),
+                            borderRadius: BorderRadius.circular(5),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white24),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text("Start", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                                  Text(
+                                    DateFormat('h:mm a').format(startTime),
+                                    style: const TextStyle(color: Colors.tealAccent, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Icon(Icons.arrow_forward, color: Colors.white24, size: 16),
+                        const SizedBox(width: 10),
+                        // End Time Button
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => pickTime(isStartTime: false),
+                            borderRadius: BorderRadius.circular(5),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white24),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text("End", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                                  Text(
+                                    DateFormat('h:mm a').format(endTime),
+                                    style: const TextStyle(color: Colors.tealAccent, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // --- TITLE INPUT ---
+                    TextField(
+                      controller: titleController,
+                      autofocus: true,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: "Title",
+                        labelStyle: TextStyle(color: Colors.white54),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.tealAccent)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // --- DESCRIPTION INPUT (OPTIONAL) ---
+                    TextField(
+                      controller: descController,
+                      style: const TextStyle(color: Colors.white),
+                      maxLines: 3, // Make it taller
+                      minLines: 1,
+                      decoration: const InputDecoration(
+                        labelText: "Description (Optional)",
+                        labelStyle: TextStyle(color: Colors.white54),
+                        alignLabelWithHint: true, // Aligns label to top
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.tealAccent)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel", style: TextStyle(color: Colors.white60)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF004D56)),
+                  onPressed: () {
+                    if (titleController.text.isNotEmpty) {
+                      final Meeting newMeeting = Meeting(
+                        id: DateTime.now().millisecondsSinceEpoch,
+                        eventName: titleController.text,
+                        description: descController.text, // Save Description
+                        from: startTime, // Use updated start time
+                        to: endTime, // Use updated end time
+                        background: const Color(0xFF0F8644),
+                        isAllDay: false,
+                      );
+                      dataSource.addMeeting(newMeeting);
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text("Save", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

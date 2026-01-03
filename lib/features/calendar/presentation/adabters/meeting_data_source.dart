@@ -11,6 +11,19 @@ class MeetingDataSource extends CalendarDataSource {
     appointments!.add(meeting);
     notifyListeners(CalendarDataSourceAction.add, [meeting]);
   }
+    // 2. UPDATE (New)
+  void updateMeeting(Meeting meeting) {
+    // Since 'meeting' is a reference, the data is already updated in memory.
+    // We just need to tell Syncfusion to repaint this specific appointment.
+    notifyListeners(CalendarDataSourceAction.reset, [meeting]);
+  }
+
+  // 3. DELETE (New)
+  void deleteMeeting(Meeting meeting) {
+    appointments!.remove(meeting);
+    notifyListeners(CalendarDataSourceAction.remove, [meeting]);
+  }
+
 
   @override
   DateTime getStartTime(int index) => _getMeetingData(index).from;
