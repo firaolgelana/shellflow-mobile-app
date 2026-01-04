@@ -3,9 +3,9 @@ import 'package:shell_flow_mobile_app/features/social/domain/entities/social_use
 
 class ConnectionRequest {
   final String requestId;
-  final SocialUser sender; // The user asking to connect
+  final SocialUser sender; 
   final DateTime sentAt;
-  final String? message; // "Hey, let's collaborate on tasks!"
+  final String? message; 
 
   const ConnectionRequest({
     required this.requestId,
