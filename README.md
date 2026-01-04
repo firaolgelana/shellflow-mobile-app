@@ -48,11 +48,8 @@ ShellFlow is a mobile productivity application that helps users organize their d
 - State Management (Bloc)
 
 ### Backend & Services
-- **Firebase Authentication**
-- **Cloud Firestore**
-- **Firebase Cloud Functions**
-- **Firebase Cloud Messaging (FCM)**
-- **Firebase Storage**
+- **Supabase Authentication**
+- **Supabase Storage**
 
 ---
 
