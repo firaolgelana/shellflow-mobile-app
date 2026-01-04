@@ -1,186 +1,196 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shell_flow_mobile_app/features/auth/presentation/bloc/auth_bloc.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
+  static const Color bg = Color(0xFF1D2733);
+  static const Color cardBg = Color(0xFF24303F); // Slightly lighter for cards
+  static const Color accentBlue = Color(0xFF50A8EB);
+  static const Color grey = Colors.grey;
+  static const Color orange = Colors.orangeAccent;
+
   @override
   Widget build(BuildContext context) {
-    // Colors based on your image
-    const Color scaffoldBg = Color(0xFF1D2733);
-    const Color headerBg = Color(0xFF1D2733);
-    const Color accentBlue = Color(0xFF50A8EB);
-    const Color infoGrey = Colors.grey;
+    return DefaultTabController(
+      length: 2, // Shells and Achievements
+      child: Scaffold(
+        backgroundColor: bg,
+        appBar: AppBar(
+          backgroundColor: bg,
+          elevation: 0,
+          title: const Text("Profile", style: TextStyle(color: Colors.white)),
+          actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.settings, color: Colors.white))],
+        ),
+        body: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            if (state is! SignedInState) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-    return Scaffold(
-      backgroundColor: scaffoldBg,
-      body: Stack(
-        children: [
-          DefaultTabController(
-            length: 2,
-            child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  // 1. Profile Header
-                  SliverAppBar(
-                    expandedHeight: 250,
-                    pinned: true,
-                    backgroundColor: headerBg,
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () {},
-                    ),
-                    actions: [
-                      IconButton(icon: const Icon(Icons.edit, color: Colors.white), onPressed: () {}),
-                      IconButton(icon: const Icon(Icons.more_vert, color: Colors.white), onPressed: () {}),
-                    ],
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 40),
-                          CircleAvatar(
-                            radius: 45,
-                            backgroundColor: Colors.orange.shade400,
-                            child: const Text(
-                              "F",
-                              style: TextStyle(fontSize: 40, color: Colors.white),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            "Firaol",
-                            style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                          const Text(
-                            "online",
-                            style: TextStyle(color: infoGrey, fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+            final user = state.user;
+            final String displayName = user.name?.isNotEmpty == true ? user.name! : user.email!.split('@').first;
+            final String initials = displayName.isNotEmpty ? displayName[0].toUpperCase() : "?";
 
-                  // 2. Info Section
-                  SliverToBoxAdapter(
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  // 1. HEADER SECTION
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: Text("Info", style: TextStyle(color: accentBlue, fontWeight: FontWeight.bold)),
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundColor: accentBlue,
+                              child: Text(initials, style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold)),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(displayName, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                                  const Text("@username_placeholder", style: TextStyle(color: accentBlue)),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Daily builder. Learning Flutter and mastering productivity. 🚀",
+                                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        _buildInfoTile("+251 952441687", "Mobile"),
-                        _buildInfoTile("@firagelana", "Username", trailing: const Icon(Icons.qr_code_2, color: accentBlue)),
-                        const Divider(color: Colors.black26, height: 1),
+                        const SizedBox(height: 24),
+
+                        // 2. STATS ROW
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStat("Followers", "1.2k"),
+                            _buildStat("Following", "450"),
+                            _buildStat("Streak", "12 🔥", color: orange),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // 3. ACTION BUTTONS
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: accentBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                                onPressed: () {},
+                                child: const Text("Follow", style: TextStyle(color: Colors.white)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white24), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                                onPressed: () {},
+                                child: const Text("Message", style: TextStyle(color: Colors.white)),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
 
-                  // 3. Persistent TabBar
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _SliverAppBarDelegate(
-                      const TabBar(
-                        indicatorColor: accentBlue,
-                        indicatorWeight: 3,
-                        labelColor: accentBlue,
-                        unselectedLabelColor: infoGrey,
-                        tabs: [
-                          Tab(text: "Posts"),
-                          Tab(text: "Archived Posts"),
-                        ],
-                      ),
+                  const SizedBox(height: 20),
+
+                  // 4. TAB BAR
+                  const TabBar(
+                    indicatorColor: accentBlue,
+                    labelColor: accentBlue,
+                    unselectedLabelColor: grey,
+                    tabs: [
+                      Tab(text: "Public Shells"),
+                      Tab(text: "Achievements"),
+                    ],
+                  ),
+
+                  // 5. CONTENT AREA
+                  // Note: In a real app, use a Sized box or NestedScrollView for the TabBarView
+                  Container(
+                    height: 500, // Fixed height for demo
+                    padding: const EdgeInsets.all(16),
+                    child: TabBarView(
+                      children: [
+                        // TAB 1: SHELLS FEED
+                        ListView(
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            _buildShellCard("Morning Routine", "3/5 Tasks", 0.6, isPinned: true),
+                            _buildShellCard("Deep Work: Flutter App", "1/1 Tasks", 1.0),
+                            _buildShellCard("Gym: Leg Day", "0/4 Tasks", 0.1),
+                          ],
+                        ),
+                        // TAB 2: ACHIEVEMENTS
+                        const Center(child: Text("Badges will appear here", style: TextStyle(color: grey))),
+                      ],
                     ),
                   ),
-                ];
-              },
-              body: const TabBarView(
-                children: [
-                  _EmptyStateView(message: "No posts yet..."),
-                  _EmptyStateView(message: "No archived posts..."),
                 ],
               ),
-            ),
-          ),
-
-          // 4. Fixed Bottom Button
-          Positioned(
-            bottom: 20,
-            left: 16,
-            right: 16,
-            child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.camera_alt),
-              label: const Text("Add a post"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentBlue,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildInfoTile(String title, String subtitle, {Widget? trailing}) {
-    return ListTile(
-      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 17)),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-      trailing: trailing,
+  // Helper: Stat Item
+  static Widget _buildStat(String label, String value, {Color color = Colors.white}) {
+    return Column(
+      children: [
+        Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(color: grey, fontSize: 13)),
+      ],
     );
   }
-}
 
-// Helper for the Sticky TabBar
-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._tabBar);
-  final TabBar _tabBar;
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height;
-  @override
-  double get maxExtent => _tabBar.preferredSize.height;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  // Helper: Shell Card (Task Progress)
+  static Widget _buildShellCard(String title, String progressText, double percent, {bool isPinned = false}) {
     return Container(
-      color: const Color(0xFF1D2733),
-      child: _tabBar,
-    );
-  }
-
-  @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) => false;
-}
-
-// Helper for the Empty Content
-class _EmptyStateView extends StatelessWidget {
-  final String message;
-  const _EmptyStateView({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(12),
+        border: isPinned ? Border.all(color: accentBlue.withOpacity(0.5)) : null,
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            message,
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              if (isPinned) const Icon(Icons.push_pin, color: accentBlue, size: 16),
+            ],
           ),
-          const SizedBox(height: 10),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              "Publish photos and videos to display on your profile page",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 15),
-            ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: LinearProgressIndicator(
+                  value: percent,
+                  backgroundColor: bg,
+                  color: percent == 1.0 ? Colors.greenAccent : accentBlue,
+                  minHeight: 6,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(progressText, style: const TextStyle(color: grey, fontSize: 12)),
+            ],
           ),
-          const SizedBox(height: 80), // Space for bottom button
         ],
       ),
     );

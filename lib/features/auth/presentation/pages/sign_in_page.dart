@@ -14,6 +14,8 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   @override
@@ -32,9 +34,7 @@ class _SignInPageState extends State<SignInPage> {
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is SignedInState ||
-              state is AuthenticatedState ||
-              state is SignedInState) {
+          if (state is AuthenticatedState || state is SignedInState) {
             Navigator.pushNamedAndRemoveUntil(
               context,
               AppRoutes.homePageRoutes,
@@ -62,16 +62,17 @@ class _SignInPageState extends State<SignInPage> {
                   const SizedBox(height: 15),
                   // Email Field
                   CustomTextField(
-                    // controller: _emailController,
+                    controller: _emailController,
                     label: "Email Address",
                     icon: Icons.email,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      final email = value?.trim();
+                      if (email == null || email.isEmpty) {
                         return "Please enter an email";
                       }
                       if (!RegExp(
                         r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                      ).hasMatch(value)) {
+                      ).hasMatch(email)) {
                         return "Enter a valid email";
                       }
                       return null;
@@ -83,7 +84,7 @@ class _SignInPageState extends State<SignInPage> {
 
                   // Password Field with Eye Icon
                   CustomTextField(
-                    // controller: _passwordController,
+                    controller: _passwordController,
                     label: "Password",
                     icon: Icons.lock,
                     isPassword: true,
@@ -95,31 +96,40 @@ class _SignInPageState extends State<SignInPage> {
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   const SizedBox(height: 15),
-                  state is AuthLoadingState ? 
-                  const Center(child: CircularProgressIndicator(color: Colors.blueAccent)) :
-                  ElevatedButton(
-                    onPressed: () {
-                      // 4. Trigger Validation
-                      if (formKey.currentState!.validate()) {
-                        debugPrint('comfirm');
-                        Navigator.pushNamed(context, AppRoutes.homePageRoutes);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.blueshade,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      "SignIn",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  state is AuthLoadingState
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.blueAccent,
+                          ),
+                        )
+                      : ElevatedButton(
+                          onPressed: () {
+                            // 4. Trigger Validation
+                            if (formKey.currentState!.validate()) {
+                              debugPrint('comfirm');
+                              context.read<AuthBloc>().add(
+                                SignInWithEmailEvent(
+                                  email: _emailController.text.trim(),
+                                  password: _passwordController.text.trim(),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.blueshade,
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            "SignIn",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                   const SizedBox(height: 20),
                   const Row(
                     children: [

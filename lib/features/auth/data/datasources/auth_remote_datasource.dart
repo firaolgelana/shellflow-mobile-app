@@ -5,7 +5,7 @@ import 'package:shell_flow_mobile_app/features/auth/domain/entities/user.dart';
 
 abstract class AuthRemoteDatasource {
   Future<User> signUpUser(User user);
-  Future<User> signInUser(User user);
+  Future<User> signInWithEmailPassword({required String email, required String password});
   Future<User> signInWithPhone();
   Future<User> signInWithGoogle();
   Future<User> signOut();
@@ -21,10 +21,32 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   });
 
   @override
-  Future<User> signInUser(User user) {
-    // TODO: implement signInUser
-    throw UnimplementedError();
+  Future<User> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await supabaseClient.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final supabaseUser = response.user;
+
+      if (supabaseUser == null) {
+        throw Exception('Sign in failed');
+      }
+
+      return User(
+        id: supabaseUser.id,
+        email: supabaseUser.email ?? '',
+        isEmailVerified: supabaseUser.emailConfirmedAt != null,
+      );
+    } catch (e) {
+      throw Exception('Sign in error: $e');
+    }
   }
+
 
   @override
   Future<User> signUpUser(User user) async {
@@ -95,11 +117,20 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     throw UnimplementedError();
   }
 
-  @override
-  Future<User> signOut() {
-    // TODO: implement signOut
-    throw UnimplementedError();
+@override
+Future<User> signOut() async {
+  try {
+    await supabaseClient.auth.signOut();
+    return const User(
+      id: '',
+      email: '',
+      isEmailVerified: false,
+    );
+  } catch (e) {
+    throw Exception('Sign out failed: $e');
   }
+}
+
 
   // ✅ FIXED
   @override

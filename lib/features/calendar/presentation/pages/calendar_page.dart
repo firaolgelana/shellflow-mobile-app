@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:intl/intl.dart'; // Import for date formatting
+
+import 'package:shell_flow_mobile_app/features/calendar/presentation/bloc/calendar_bloc.dart';
+import 'package:shell_flow_mobile_app/features/calendar/presentation/adabters/meeting_data_source.dart';
+import 'package:shell_flow_mobile_app/features/calendar/presentation/models/meeting_model.dart';
+import 'package:shell_flow_mobile_app/features/calendar/presentation/widgets/calendar_utils.dart';
+import 'package:shell_flow_mobile_app/features/calendar/presentation/widgets/calendar_event_handler.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -12,9 +19,18 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   final CalendarController _calendarController = CalendarController();
   
-  // State variable to hold the visible month name
-  String _monthName = DateFormat('MMMM').format(DateTime.now());
+  // Initialize with empty list so calendar can render immediately
+  MeetingDataSource _dataSource = MeetingDataSource([]); 
+  
   CalendarView _currentView = CalendarView.month;
+  String _monthName = DateFormat('MMMM').format(DateTime.now());
+
+  @override
+  void initState() {
+    super.initState();
+    // Load data silently or normally on startup
+    context.read<CalendarBloc>().add(LoadAllTasksEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +39,12 @@ class _CalendarPageState extends State<CalendarPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F1316),
         elevation: 0,
-        leading: const Icon(Icons.menu, color: Colors.white),
-        // Wrap the title in an InkWell to make it clickable
+        automaticallyImplyLeading: false,
         title: InkWell(
-          onTap: () => _selectDate(context), // Opens date picker
+          onTap: () => CalendarUtils.pickDateAndJump(
+            context: context, 
+            controller: _calendarController
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -36,147 +54,176 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.search, color: Colors.white)),
           IconButton(
             onPressed: () {
-              // Quick jump back to today
-              setState(() {
-                _calendarController.displayDate = DateTime.now();
-              });
+               setState(() => _calendarController.displayDate = DateTime.now());
             }, 
-            icon: const Icon(Icons.calendar_today_outlined, color: Colors.white)
+            icon: const Icon(Icons.today, color: Colors.white)
           ),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.check_circle_outline, color: Colors.white)),
         ],
       ),
-      body: SfCalendar(
-        controller: _calendarController,
-        view: _currentView,
-        dataSource: _getDataSource(),
-        backgroundColor: const Color(0xFF0F1316),
-        cellBorderColor: Colors.white10,
-          // ADD THIS BLOCK:
-        timeSlotViewSettings: const TimeSlotViewSettings(
-          // This changes the time labels on the left to white
-          timeTextStyle: TextStyle(
-            color: Colors.white70, 
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
-          ),
-          // Optional: Changes the color of the horizontal lines between hours
-          // timelineAnimationDuration: Duration(milliseconds: 300),
-        ),
-
-        
-        // This function triggers every time you scroll/swipe
-        onViewChanged: (ViewChangedDetails details) {
-          // Get the date in the middle of the visible dates to determine the month
-          final DateTime visibleDate = details.visibleDates[details.visibleDates.length ~/ 2];
-          
-          // Update the month name in the AppBar
-          // Use 'MMMM yyyy' if you want "November 2025"
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            setState(() {
-              _monthName = DateFormat('MMMM').format(visibleDate);
-            });
-          });
+      
+      // 1. BLOC CONSUMER
+      body: BlocConsumer<CalendarBloc, CalendarState>(
+        listener: (context, state) {
+          if (state is CalendarError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            );
+          }
         },
+        builder: (context, state) {
+          // 2. CHECK LOADING STATUS
+          final bool isLoading = state is CalendarLoading;
 
-        viewHeaderStyle: const ViewHeaderStyle(
-          dayTextStyle: TextStyle(color: Colors.white, fontSize: 13),
-          dateTextStyle: TextStyle(color: Colors.white, fontSize: 13),
-        ),
-        monthViewSettings: const MonthViewSettings(
-          appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
-          monthCellStyle: MonthCellStyle(
-            textStyle: TextStyle(color: Colors.white, fontSize: 12),
-            trailingDatesTextStyle: TextStyle(color: Colors.white24),
-            leadingDatesTextStyle: TextStyle(color: Colors.white24),
-            todayTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-        headerHeight: 0, // Hidden because we use our custom AppBar
-        todayHighlightColor: Colors.blue,
+          // 3. UPDATE DATA ONLY IF LOADED
+          // If state is Loading, we intentionally KEEP the old _dataSource
+          // so the user sees the old events while the new ones load.
+          if (state is CalendarLoaded) {
+            final List<Meeting> meetings = state.tasks
+                .map((task) => Meeting.fromEntity(task))
+                .toList();
+            _dataSource = MeetingDataSource(meetings);
+          }
+
+          // 4. USE A COLUMN TO STACK LOADER + CALENDAR
+          return Column(
+            children: [
+              // --- THE LINEAR LOADER ---
+              if (isLoading)
+                const LinearProgressIndicator(
+                  backgroundColor: Color(0xFF1A1F23),
+                  color: Colors.tealAccent, // Your Theme Color
+                  minHeight: 2, // Keep it thin and sleek
+                )
+              else 
+                // Placeholder to prevent layout jump (optional)
+                const SizedBox(height: 2), 
+
+              // --- THE CALENDAR ---
+              Expanded(
+                child: SfCalendar(
+                  controller: _calendarController,
+                  dataSource: _dataSource, // Always uses current data
+                  view: _currentView,
+                  headerHeight: 0,
+                  firstDayOfWeek: 1,
+                  allowAppointmentResize: true,
+                  allowDragAndDrop: true,
+                  backgroundColor: const Color(0xFF0F1316),
+                  cellBorderColor: Colors.white24,
+                  todayHighlightColor: Colors.tealAccent,
+                  
+                  viewHeaderStyle: const ViewHeaderStyle(
+                    backgroundColor: Color(0xFF12171A),
+                    dayTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    dateTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  monthViewSettings: const MonthViewSettings(
+                    dayFormat: 'EEE',
+                    appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+                  ),
+                  timeSlotViewSettings: const TimeSlotViewSettings(
+                    timeIntervalHeight: 80,
+                    dayFormat: 'EEE',
+                    timeTextStyle: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  selectionDecoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(color: const Color(0xFF8AB4F8), width: 2),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  monthCellBuilder: (context, details) {
+                    final bool isToday = details.date.day == DateTime.now().day &&
+                        details.date.month == DateTime.now().month &&
+                        details.date.year == DateTime.now().year;
+                    return Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          details.date.day.toString(),
+                          style: TextStyle(
+                            color: isToday ? Colors.tealAccent : Colors.white70,
+                            fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  
+                  // Logic
+                  onViewChanged: (ViewChangedDetails details) {
+                    final DateTime visibleDate = details.visibleDates[details.visibleDates.length ~/ 2];
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if(mounted) setState(() => _monthName = DateFormat('MMMM').format(visibleDate));
+                    });
+                  },
+                  
+                  onTap: (CalendarTapDetails details) {
+                    if (details.targetElement == CalendarElement.appointment) {
+                      final Meeting meeting = details.appointments![0];
+                      CalendarEventHandler.showEventDialog(
+                        context: context,
+                        bloc: context.read<CalendarBloc>(),
+                        existingMeeting: meeting,
+                        selectedDate: meeting.from,
+                      );
+                    } 
+                    else if (details.targetElement == CalendarElement.calendarCell && details.date != null) {
+                      if (_currentView == CalendarView.month) {
+                         setState(() {
+                          _currentView = CalendarView.day;
+                          _calendarController.view = CalendarView.day;
+                          _calendarController.displayDate = details.date;
+                        });
+                      } else {
+                        CalendarEventHandler.showEventDialog(
+                          context: context,
+                          bloc: context.read<CalendarBloc>(),
+                          selectedDate: details.date!,
+                        );
+                      }
+                    }
+                  },
+                  
+                  onAppointmentResizeEnd: (details) {
+                    if (details.appointment is Meeting) {
+                      final meeting = details.appointment as Meeting;
+                      context.read<CalendarBloc>().add(UpdateTaskEvent(meeting.toEntity()));
+                    }
+                  },
+                  onDragEnd: (details) {
+                    if (details.appointment is Meeting) {
+                      final meeting = details.appointment as Meeting;
+                      context.read<CalendarBloc>().add(UpdateTaskEvent(meeting.toEntity()));
+                    }
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
       
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF004D56),
-        onPressed: () => _showViewPicker(context),
         child: const Icon(Icons.add, size: 30, color: Colors.white),
+        onPressed: () {
+          CalendarUtils.showViewPicker(
+            context: context,
+            onViewSelected: (view) {
+              setState(() {
+                _currentView = view;
+                _calendarController.view = view;
+              });
+            },
+          );
+        },
       ),
     );
   }
-
-  // Logic for the Dropdown: Pick a date and jump the calendar to it
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _calendarController.displayDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      // Styling the picker to match your dark theme
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF004D56), // Selection color
-              onPrimary: Colors.white,
-              surface: Color(0xFF1A1F23),
-              onSurface: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        _calendarController.displayDate = picked;
-      });
-    }
-  }
-
-  // (Keeping your existing _showViewPicker and _getDataSource logic here...)
-  void _showViewPicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1A1F23),
-      builder: (context) => Wrap(
-        children: [
-          _viewOption(Icons.calendar_view_day, "Daily", CalendarView.day),
-          _viewOption(Icons.view_week, "Weekly", CalendarView.week),
-          _viewOption(Icons.grid_view, "Monthly", CalendarView.month),
-        ],
-      ),
-    );
-  }
-
-  Widget _viewOption(IconData icon, String title, CalendarView view) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      onTap: () {
-        setState(() {
-          _currentView = view;
-          _calendarController.view = view;
-        });
-        Navigator.pop(context);
-      },
-    );
-  }
-
-  _DataSource _getDataSource() {
-    return _DataSource(<Appointment>[
-      Appointment(
-        startTime: DateTime.now(),
-        endTime: DateTime.now().add(const Duration(hours: 1)),
-        subject: 'System Design',
-        color: Colors.blue,
-      )
-    ]);
-  }
-}
-
-class _DataSource extends CalendarDataSource {
-  _DataSource(List<Appointment> source) { appointments = source; }
 }
