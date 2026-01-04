@@ -97,8 +97,8 @@ class CalendarRemoteDatasourceImpl implements CalendarRemoteDatasource {
         .select()
         .eq('user_id', userId)
         // Filter where start_time is between start and end
-        .gte('start_time', start.toIso8601String())
-        .lte('start_time', end.toIso8601String())
+        .gte('start_time', start.toUtc().toIso8601String())
+        .lte('start_time', end.toUtc().toIso8601String())
         .order('start_time');
 
     return (response as List)

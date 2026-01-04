@@ -33,8 +33,8 @@ class CalendarTaskModel extends CalendarTask {
       'user_id': userId, // Required by Supabase
       'title': title,
       'description': description,
-      'start_time': startTime.toIso8601String(),
-      'end_time': endTime.toIso8601String(),
+      'start_time': startTime.toUtc().toIso8601String(),
+      'end_time': endTime.toUtc().toIso8601String(),
       'is_all_day': isAllDay,
       'color_value': color.value, // Save Color as Int
     };
