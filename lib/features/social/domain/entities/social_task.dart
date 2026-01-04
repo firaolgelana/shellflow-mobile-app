@@ -1,7 +1,7 @@
 // domain/entities/shared_task.dart
 import 'package:shell_flow_mobile_app/features/social/domain/entities/social_user.dart';
 
-class SharedTask {
+class SocialTask {
   final String id;
   final String originalTaskId; // Reference to the actual task ID
   final SocialUser author;
@@ -14,7 +14,7 @@ class SharedTask {
   final int commentCount;
   final bool isLikedByMe;
 
-  const SharedTask({
+  const SocialTask({
     required this.id,
     required this.originalTaskId,
     required this.author,
