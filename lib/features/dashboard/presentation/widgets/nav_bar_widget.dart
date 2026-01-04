@@ -13,7 +13,7 @@ NavigationBar navBarWidget({
       ),
       NavigationDestination(
         icon: Icon(Icons.person),
-        label: 'User',
+        label: 'Social',
       ),
       NavigationDestination(
         icon: Icon(Icons.chat),
