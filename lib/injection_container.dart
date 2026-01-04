@@ -9,6 +9,7 @@ import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_friend
 import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_pending_requests.dart';
 import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_shared_task_details.dart';
 import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_social_feed.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_social_user_profile.dart';
 import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_task_comments.dart';
 import 'package:shell_flow_mobile_app/features/social/domain/usecases/handle_connection_request.dart';
 import 'package:shell_flow_mobile_app/features/social/domain/usecases/remove_friend.dart';
@@ -163,6 +164,7 @@ void _initSocial() {
   sl.registerLazySingleton(() => GetPendingRequests(repository: sl()));
   sl.registerLazySingleton(() => GetSharedTaskDetails(repository: sl()));
   sl.registerLazySingleton(() => GetSocialFeed(repository: sl()));
+  sl.registerLazySingleton(() => GetSocialUserProfile(repository: sl()));
   sl.registerLazySingleton(() => GetTaskComments(repository: sl()));
   sl.registerLazySingleton(() => HandleConnectionRequest(repository: sl()));
   sl.registerLazySingleton(() => RemoveFriend(repository: sl()));

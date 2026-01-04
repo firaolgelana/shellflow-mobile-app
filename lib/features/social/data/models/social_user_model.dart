@@ -9,9 +9,9 @@ class SocialUserModel extends SocialUser {
 
   factory SocialUserModel.fromJson(Map<String, dynamic> json) {
     return SocialUserModel(
-      id: json['id'],
-      username: json['username'],
-      photoUrl: json['photoUrl'],
+      id: json['id'] ?? '',
+      username: json['display_name'] ?? '',
+      photoUrl: json['photoUrl'] ?? '',
     );
   }
   Map<String, dynamic> json() {

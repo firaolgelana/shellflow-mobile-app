@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:shell_flow_mobile_app/core/errors/failure.dart';
 import 'package:shell_flow_mobile_app/features/profile/data/models/user_profile_model.dart';
 import 'package:shell_flow_mobile_app/features/social/data/models/connection_request_model.dart';
@@ -14,17 +15,25 @@ import 'package:shell_flow_mobile_app/features/social/domain/repositories/social
 
 // Abstract class (from your prompt)
 abstract class SocialRemoteDatasource {
-  Future<SocialComment> addComment({required String taskId, required String content});
+  Future<SocialComment> addComment({
+    required String taskId,
+    required String content,
+  });
   Future<void> deleteComment({required String commentId});
   Future<List<SocialUser>> getFriendList({String? userId});
   Future<List<ConnectionRequest>> getPendingRequests();
   Future<List<SocialTask>> getSocialFeed({int page = 1, int limit = 20});
   Future<UserProfile> getSocialUserProfile({required String userId});
   Future<List<SocialComment>> getTaskComments({required String taskId});
-  Future<void> handleConnectionRequest({required String requestId, required ConnectionRequestAction action});
+  Future<void> handleConnectionRequest({
+    required String requestId,
+    required ConnectionRequestAction action,
+  });
   Future<void> removeFriend({required String friendId});
   Future<List<SocialUser>> searchUsers({required String query});
-  Future<ConnectionRequest> sendConnectionRequest({required String targetUserId});
+  Future<ConnectionRequest> sendConnectionRequest({
+    required String targetUserId,
+  });
   Future<SocialTask> shareTaskToFeed({required String taskId, String? caption});
   Future<void> toggleLikeTask({required String taskId});
   Future<SocialTask> getSharedTaskDetails({required String taskId});
@@ -54,7 +63,7 @@ class SocialRemoteDatasourceImpl implements SocialRemoteDatasource {
           .select('*, profiles(*)') // Join with profile to get author details
           .single();
 
-      return SocialCommentModel.fromJson(response); 
+      return SocialCommentModel.fromJson(response);
     } catch (e) {
       throw ServerFailure(message: e.toString());
     }
@@ -142,12 +151,16 @@ class SocialRemoteDatasourceImpl implements SocialRemoteDatasource {
 
       final response = await supabase
           .from('tasks')
-          .select('*, profiles(*), likes(count)') // Join profile and count likes
+          .select(
+            '*, profiles(*), likes(count)',
+          ) // Join profile and count likes
           .eq('is_shared', true)
           .order('shared_at', ascending: false)
           .range(start, end);
 
-      return (response as List).map((e) => SocialTaskModel.fromJson(e)).toList();
+      return (response as List)
+          .map((e) => SocialTaskModel.fromJson(e))
+          .toList();
     } catch (e) {
       throw ServerFailure(message: e.toString());
     }
@@ -177,7 +190,9 @@ class SocialRemoteDatasourceImpl implements SocialRemoteDatasource {
           .eq('task_id', taskId)
           .order('created_at', ascending: true);
 
-      return (response as List).map((e) => SocialCommentModel.fromJson(e)).toList();
+      return (response as List)
+          .map((e) => SocialCommentModel.fromJson(e))
+          .toList();
     } catch (e) {
       throw ServerFailure(message: e.toString());
     }
@@ -207,8 +222,12 @@ class SocialRemoteDatasourceImpl implements SocialRemoteDatasource {
   Future<void> removeFriend({required String friendId}) async {
     try {
       // Delete the row where (me, friend) OR (friend, me) exists
-      await supabase.from('friendships').delete().or(
-          'and(sender_id.eq.$_currentUserId,receiver_id.eq.$friendId),and(sender_id.eq.$friendId,receiver_id.eq.$_currentUserId)');
+      await supabase
+          .from('friendships')
+          .delete()
+          .or(
+            'and(sender_id.eq.$_currentUserId,receiver_id.eq.$friendId),and(sender_id.eq.$friendId,receiver_id.eq.$_currentUserId)',
+          );
     } catch (e) {
       throw ServerFailure(message: e.toString());
     }
@@ -219,16 +238,32 @@ class SocialRemoteDatasourceImpl implements SocialRemoteDatasource {
     try {
       final response = await supabase
           .from('profiles')
-          .select()
-          .ilike('username', '%$query%') // Case insensitive search
+          .select('*')
+          // .ilike('username', '%$query%') 
           .limit(10);
 
-      return (response as List).map((e) => SocialUserModel.fromJson(e)).toList();
+      // --- DEBUGGING START ---
+      // debugPrint('----------------- API RESPONSE -----------------');
+      
+      // // 1. Check if it's empty
+      // if ((response as List).isEmpty) {
+      //   debugPrint('Response is EMPTY list []');
+      // } else {
+      //   // 2. Pretty print the JSON data
+      //   String prettyJson = const JsonEncoder.withIndent('  ').convert(response);
+      //   debugPrint(prettyJson);
+      // }
+      // debugPrint('------------------------------------------------');
+      // // --- DEBUGGING END ---
+
+      return (response as List)
+          .map((e) => SocialUserModel.fromJson(e)) // Ensure you use SocialUserModel here
+          .toList();
     } catch (e) {
+      debugPrint('ERROR FETCHING USERS: $e'); // Print the error too
       throw ServerFailure(message: e.toString());
     }
   }
-
   @override
   Future<ConnectionRequest> sendConnectionRequest({
     required String targetUserId,
@@ -286,10 +321,7 @@ class SocialRemoteDatasourceImpl implements SocialRemoteDatasource {
 
       if (existingLike != null) {
         // Unlike
-        await supabase
-            .from('likes')
-            .delete()
-            .eq('id', existingLike['id']);
+        await supabase.from('likes').delete().eq('id', existingLike['id']);
       } else {
         // Like
         await supabase.from('likes').insert({

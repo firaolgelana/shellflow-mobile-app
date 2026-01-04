@@ -56,6 +56,11 @@ Widget drawerWidget(BuildContext context) {
 
           },
         ),
+        ListTile(leading: const Icon(Icons.person), title: const Text('Friends'),
+          onTap: (){
+
+          },
+        ),
         const ListTile(leading: Icon(Icons.settings), title: Text('Settings')),
         const ListTile(
           leading: Icon(Icons.featured_play_list),
