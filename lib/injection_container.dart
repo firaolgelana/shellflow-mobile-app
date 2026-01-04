@@ -1,5 +1,22 @@
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:shell_flow_mobile_app/features/social/data/datasources/social_remote_datasource.dart';
+import 'package:shell_flow_mobile_app/features/social/data/repositories/social_repository_impl.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/repositories/social_repository.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/add_comment.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/delete_comment.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_friends_list.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_pending_requests.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_shared_task_details.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_social_feed.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/get_task_comments.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/handle_connection_request.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/remove_friend.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/search_users.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/send_connection_request.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/share_task_to_feed.dart';
+import 'package:shell_flow_mobile_app/features/social/domain/usecases/toggle_like_task.dart';
+import 'package:shell_flow_mobile_app/features/social/presentation/bloc/social_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Core
@@ -46,7 +63,8 @@ Future<void> initDependencies() async {
 
   // 2. Register Features
   _initAuth();
-  _initCalendar(); // <--- ADD THIS
+  _initCalendar();
+  _initSocial();
 }
 
 void _initAuth() {
@@ -57,10 +75,7 @@ void _initAuth() {
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-      remoteDatasource: sl(),
-      networkInfo: sl(),
-    ),
+    () => AuthRepositoryImpl(remoteDatasource: sl(), networkInfo: sl()),
   );
 
   // Usecases
@@ -98,7 +113,7 @@ void _initCalendar() {
   sl.registerLazySingleton<CalendarRepository>(
     () => CalendarRepositoryImpl(
       remoteDatasource: sl(), // Injects CalendarRemoteDatasource
-      networkInfo: sl(),      // Injects NetworkInfo
+      networkInfo: sl(), // Injects NetworkInfo
     ),
   );
 
@@ -107,7 +122,9 @@ void _initCalendar() {
   sl.registerLazySingleton(() => UpdateTaskUsecase(repository: sl()));
   sl.registerLazySingleton(() => DeleteTaskUsecase(repository: sl()));
   sl.registerLazySingleton(() => GetTasksByRangeUsecase(repository: sl()));
-  sl.registerLazySingleton(() => GetAllTasksUsecase(repository: sl())); // Included since Bloc needs it
+  sl.registerLazySingleton(
+    () => GetAllTasksUsecase(repository: sl()),
+  ); // Included since Bloc needs it
 
   // 3. Presentation Layer (Bloc)
   // Use registerFactory so a new Bloc is created every time the page opens
@@ -118,6 +135,60 @@ void _initCalendar() {
       deleteTask: sl(),
       getTasksByRange: sl(),
       getAllTasks: sl(),
+    ),
+  );
+}
+
+//social dependency injection
+
+void _initSocial() {
+  // 1. Data Layer
+  // Register the Datasource (Implementation)
+  sl.registerLazySingleton<SocialRemoteDatasource>(
+    () => SocialRemoteDatasourceImpl(supabase: sl()), // Injects SupabaseClient
+  );
+
+  // Register the Repository (Implementation)
+  sl.registerLazySingleton<SocialRepository>(
+    () => SocialRepositoryImpl(
+      remoteDatasource: sl(), // Injects CalendarRemoteDatasource
+      networkInfo: sl(), // Injects NetworkInfo
+    ),
+  );
+
+  // 2. Domain Layer (Use Cases)
+  sl.registerLazySingleton(() => AddComment(repository: sl()));
+  sl.registerLazySingleton(() => DeleteComment(repository: sl()));
+  sl.registerLazySingleton(() => GetFriendsList(repository: sl()));
+  sl.registerLazySingleton(() => GetPendingRequests(repository: sl()));
+  sl.registerLazySingleton(() => GetSharedTaskDetails(repository: sl()));
+  sl.registerLazySingleton(() => GetSocialFeed(repository: sl()));
+  sl.registerLazySingleton(() => GetTaskComments(repository: sl()));
+  sl.registerLazySingleton(() => HandleConnectionRequest(repository: sl()));
+  sl.registerLazySingleton(() => RemoveFriend(repository: sl()));
+  sl.registerLazySingleton(() => SearchUsers(repository: sl()));
+  sl.registerLazySingleton(() => SendConnectionRequest(repository: sl()));
+  sl.registerLazySingleton(() => ShareTaskToFeed(repository: sl()));
+  sl.registerLazySingleton(() => ToggleLikeTask(repository: sl()));
+
+  // 3. Presentation Layer (Bloc)
+  // Use registerFactory so a new Bloc is created every time the page opens
+  sl.registerFactory(
+    () => SocialBloc(
+      addComment: sl(),
+      deleteComment: sl(),
+      getFriendsList: sl(),
+      getPendingRequests: sl(),
+      getSharedTaskDetails: sl(),
+      getSocialFeed: sl(),
+      getSocialUserProfile: sl(),
+      getTaskComments: sl(),
+      handleConnectionRequest: sl(),
+      removeFriend: sl(),
+      searchUsers: sl(),
+      sendConnectionRequest: sl(),
+      shareTaskToFeed: sl(),
+      toggleLikeTask: sl(),
     ),
   );
 }
