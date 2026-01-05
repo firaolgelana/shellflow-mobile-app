@@ -12,10 +12,8 @@ part 'dashboard_event.dart';
 part 'dashboard_state.dart';
 
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
-  // The Master Use Case
   final GetDashboardSummary getDashboardSummary;
-  
-  // Granular Use Cases (for partial refreshes)
+
   final GetUnreadNotificationCount getUnreadNotificationCount;
   final GetDailyTaskStatics getDailyTaskStatistics;
   final GetTaskStatics getTaskStatistics;
