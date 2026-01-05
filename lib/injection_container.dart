@@ -1,5 +1,11 @@
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:shell_flow_mobile_app/features/profile/data/datasources/profile_remote_datasource.dart';
+import 'package:shell_flow_mobile_app/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:shell_flow_mobile_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:shell_flow_mobile_app/features/profile/domain/usecases/get_profile_usecase.dart';
+import 'package:shell_flow_mobile_app/features/profile/domain/usecases/update_profile_usecase.dart';
+import 'package:shell_flow_mobile_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:shell_flow_mobile_app/features/social/data/datasources/social_remote_datasource.dart';
 import 'package:shell_flow_mobile_app/features/social/data/repositories/social_repository_impl.dart';
 import 'package:shell_flow_mobile_app/features/social/domain/repositories/social_repository.dart';
@@ -66,6 +72,7 @@ Future<void> initDependencies() async {
   _initAuth();
   _initCalendar();
   _initSocial();
+  _initProfile();
 }
 
 void _initAuth() {
@@ -98,6 +105,25 @@ void _initAuth() {
       getCurrentUserUsecase: sl(),
     ),
   );
+}
+//profile
+
+void _initProfile() {
+  // Datasource
+  sl.registerLazySingleton<ProfileRemoteDatasource>(
+    () => ProfileRemoteDatasourceImpl(supabase: sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDatasource: sl(), networkInfo: sl()),
+  );
+
+  // Usecases
+  sl.registerLazySingleton(() => GetProfileUsecase(repository: sl()));
+  sl.registerLazySingleton(() => UpdateProfileUsecase(repository: sl()));
+  // Bloc
+  sl.registerFactory(() => ProfileBloc(getProfile: sl(), updateProfile: sl()));
 }
 
 // -----------------------------------------------------------------------------
