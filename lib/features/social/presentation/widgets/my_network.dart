@@ -180,11 +180,11 @@ class _UserConnectionCardState extends State<_UserConnectionCard> {
                       setState(() {
                         isRequestSent = true;
                       });
-                      context.read<SocialBloc>().add(
-                            SendConnectionRequestEvent(
-                              targetUserId: widget.user.id,
-                            ),
-                          );
+                      // context.read<SocialBloc>().add(
+                      //       SendConnectionRequestEvent(
+                      //         targetUserId: widget.user.id,
+                      //       ),
+                      //     );
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: isRequestSent 

@@ -1,5 +1,23 @@
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/data/datasources/dashboard_remote_datasource.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_daily_task_statics.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_dashboard_summary.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_recent_social_activities.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_task_statics.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_unread_notification_count.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_weekly_progress_usecase.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/toggle_task_status.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/upcoming_tasks.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:shell_flow_mobile_app/features/profile/data/datasources/profile_remote_datasource.dart';
+import 'package:shell_flow_mobile_app/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:shell_flow_mobile_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:shell_flow_mobile_app/features/profile/domain/usecases/get_profile_usecase.dart';
+import 'package:shell_flow_mobile_app/features/profile/domain/usecases/update_profile_usecase.dart';
+import 'package:shell_flow_mobile_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:shell_flow_mobile_app/features/social/data/datasources/social_remote_datasource.dart';
 import 'package:shell_flow_mobile_app/features/social/data/repositories/social_repository_impl.dart';
 import 'package:shell_flow_mobile_app/features/social/domain/repositories/social_repository.dart';
@@ -66,6 +84,8 @@ Future<void> initDependencies() async {
   _initAuth();
   _initCalendar();
   _initSocial();
+  _initProfile();
+  _initDashboard();
 }
 
 void _initAuth() {
@@ -98,6 +118,62 @@ void _initAuth() {
       getCurrentUserUsecase: sl(),
     ),
   );
+}
+
+//dashboard
+void _initDashboard() {
+  // Datasource
+  sl.registerLazySingleton<DashboardRemoteDatasource>(
+    () => DashboardRemoteDatasourceImpl(supabase: sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<DashboardRepository>(
+    () => DashboardRepositoryImpl(remoteDatasource: sl(), networkInfo: sl()),
+  );
+
+  // Usecases
+  sl.registerLazySingleton(() => GetDailyTaskStatics(repository: sl()));
+  sl.registerLazySingleton(() => GetDashboardSummary(repository: sl()));
+  sl.registerLazySingleton(() => GetRecentSocialActivities(repository: sl()));
+  sl.registerLazySingleton(() => GetTaskStatics(repository: sl()));
+  sl.registerLazySingleton(() => GetUnreadNotificationCount(repository: sl()));
+  sl.registerLazySingleton(() => GetWeeklyProgressUsecase(repository: sl()));
+  sl.registerLazySingleton(() => UpcomingTasks(repository: sl()));
+  sl.registerLazySingleton(() => ToggleTaskStatus(repository: sl()));
+
+  // Bloc
+  sl.registerFactory(
+    () => DashboardBloc(
+      getDashboardSummary: sl(),
+      getUnreadNotificationCount: sl(),
+      getDailyTaskStatistics: sl(),
+      getTaskStatistics: sl(),
+      getRecentSocialActivities: sl(),
+      getWeeklyProgress: sl(), 
+      getUpcomingTasks: sl(), 
+      toggleTaskStatus: sl(),
+    ),
+  );
+}
+//profile
+
+void _initProfile() {
+  // Datasource
+  sl.registerLazySingleton<ProfileRemoteDatasource>(
+    () => ProfileRemoteDatasourceImpl(supabase: sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDatasource: sl(), networkInfo: sl()),
+  );
+
+  // Usecases
+  sl.registerLazySingleton(() => GetProfileUsecase(repository: sl()));
+  sl.registerLazySingleton(() => UpdateProfileUsecase(repository: sl()));
+  // Bloc
+  sl.registerFactory(() => ProfileBloc(getProfile: sl(), updateProfile: sl()));
 }
 
 // -----------------------------------------------------------------------------

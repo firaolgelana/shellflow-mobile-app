@@ -12,10 +12,10 @@ class UserProfileModel extends UserProfile {
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
       id: json['id'],
-      name: json['full_name'], // Note: API might use 'full_name' but Entity uses 'name'
+      name: json['display_name'], 
       email: json['email'],
-      bio: json['bio'],
-      profilePictureUrl: json['avatar_url'],
+      bio: json['bio'] ?? '',
+      profilePictureUrl: json['photo_url'],
     );
   }
 

@@ -1,34 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/stat_item.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/task_statics.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/presentation/widgets/stat_card.dart';
 
-Widget allTaskSummaryGrid() {
+Widget allTaskSummaryGrid(TaskStatistics stats) {
   final items = [
     StatItem(
       title: 'Total Tasks',
       subtitle: 'Tasks scheduled overall',
-      count: 0,
+      count: stats.total,
       icon: Icons.list_alt,
       iconColor: Colors.grey,
     ),
     StatItem(
       title: 'Completed',
       subtitle: 'Tasks completed',
-      count: 0,
+      count: stats.completed,
       icon: Icons.check_circle,
       iconColor: Colors.green,
     ),
     StatItem(
       title: 'Pending',
       subtitle: 'Tasks remaining',
-      count: 0,
+      count: stats.pending,
       icon: Icons.access_time,
       iconColor: Colors.amber,
     ),
     StatItem(
       title: 'Overdue',
       subtitle: 'Tasks past deadline',
-      count: 2,
+      count: stats.overdue,
       icon: Icons.error,
       iconColor: Colors.red,
     ),
