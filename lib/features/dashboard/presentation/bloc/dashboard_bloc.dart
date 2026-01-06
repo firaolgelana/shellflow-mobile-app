@@ -7,6 +7,7 @@ import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_tas
 import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_recent_social_activities.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_unread_notification_count.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_weekly_progress_usecase.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/upcoming_tasks.dart';
 
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';
@@ -19,6 +20,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetTaskStatics getTaskStatistics;
   final GetRecentSocialActivities getRecentSocialActivities;
   final GetWeeklyProgressUsecase getWeeklyProgress;
+  final UpcomingTasks getUpcomingTasks;
 
   DashboardBloc({
     required this.getDashboardSummary,
@@ -27,8 +29,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     required this.getTaskStatistics,
     required this.getRecentSocialActivities,
     required this.getWeeklyProgress,
+    required this.getUpcomingTasks,
   }) : super(DashboardInitial()) {
-    
     on<FetchDashboardData>(_onFetchDashboardData);
     on<RefreshNotificationCount>(_onRefreshNotificationCount);
     on<RefreshTaskStats>(_onRefreshTaskStats);
@@ -79,8 +81,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             recentActivities: currentData.recentActivities,
             weeklyProgress: currentData.weeklyProgress,
             unreadNotificationCount: newCount, // <--- UPDATE THIS
+            upcomingTasks: currentData.upcomingTasks
           );
-          
+
           emit(DashboardLoaded(updatedData));
         },
       );
@@ -101,19 +104,22 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
       // Check if both succeeded (this is a simplified check)
       if (dailyResult.isRight() && overallResult.isRight()) {
-         final newDaily = dailyResult.getOrElse(() => currentData.todayStats);
-         final newOverall = overallResult.getOrElse(() => currentData.overallStats);
+        final newDaily = dailyResult.getOrElse(() => currentData.todayStats);
+        final newOverall = overallResult.getOrElse(
+          () => currentData.overallStats,
+        );
 
-         final updatedData = DashboardData(
-            userProfile: currentData.userProfile,
-            todayStats: newDaily, // <--- UPDATED
-            overallStats: newOverall, // <--- UPDATED
-            recentActivities: currentData.recentActivities,
-            weeklyProgress: currentData.weeklyProgress,
-            unreadNotificationCount: currentData.unreadNotificationCount,
-          );
+        final updatedData = DashboardData(
+          userProfile: currentData.userProfile,
+          todayStats: newDaily, // <--- UPDATED
+          overallStats: newOverall, // <--- UPDATED
+          recentActivities: currentData.recentActivities,
+          weeklyProgress: currentData.weeklyProgress,
+          unreadNotificationCount: currentData.unreadNotificationCount,
+          upcomingTasks: currentData.upcomingTasks
+        );
 
-         emit(DashboardLoaded(updatedData));
+        emit(DashboardLoaded(updatedData));
       }
     }
   }

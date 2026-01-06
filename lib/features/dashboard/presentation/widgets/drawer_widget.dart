@@ -105,7 +105,7 @@ Widget drawerWidget(BuildContext context) {
               title: const Text('Tasks'),
               onTap: () {
                 Navigator.pop(context);
-                // Navigator.pushNamed(context, AppRoutes.tasks); // If you have a task page
+                Navigator.pushNamed(context, AppRoutes.allTaskPage); 
               },
             ),
             ListTile(

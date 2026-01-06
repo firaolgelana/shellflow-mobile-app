@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shell_flow_mobile_app/core/errors/failure.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/upcoming_task.dart';
 import 'package:shell_flow_mobile_app/features/profile/data/models/user_profile_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
@@ -7,7 +8,7 @@ import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/dashboa
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/social_activity.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/task_statics.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/weekly_progress.dart';
-import 'package:shell_flow_mobile_app/features/profile/domain/entities/user_profile.dart'; // Needed for DashboardData
+import 'package:shell_flow_mobile_app/features/profile/domain/entities/user_profile.dart';
 
 abstract class DashboardRemoteDatasource {
   Future<DashboardData> getDashboardSummary(String userId);
@@ -16,6 +17,7 @@ abstract class DashboardRemoteDatasource {
   Future<TaskStatistics> getDailyTaskStatistics(String userId);
   Future<int> getUnreadNotificationCount(String userId);
   Future<List<WeeklyProgress>> getWeeklyProgress(String userId);
+  Future<List<UpcomingTask>> getUpcomingTasks(String userId);
 }
 
 class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
@@ -23,9 +25,12 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
 
   DashboardRemoteDatasourceImpl({required this.supabase});
 
-@override
+  @override
   Future<DashboardData> getDashboardSummary(String userId) async {
     try {
+      //auto update
+      debugPrint('call overdue updata');
+      _updateOverdueTasks(userId);
       // DEBUG: Print the ID we are using
       debugPrint('Fetching Dashboard for UserID: $userId');
 
@@ -50,6 +55,9 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
       // 4. Fetch Progress
       debugPrint('Step 6: Fetching Weekly Progress...');
       final progress = await getWeeklyProgress(userId);
+      // 4. upcoming tasks
+      debugPrint('Step 6: Fetching upcoming tasks..');
+      final upcoming = await getUpcomingTasks(userId);
 
       return DashboardData(
         userProfile: profile,
@@ -58,6 +66,7 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
         recentActivities: activities,
         unreadNotificationCount: notifs,
         weeklyProgress: progress,
+        upcomingTasks: upcoming,
       );
     } catch (e, stacktrace) {
       // THIS PRINT IS CRITICAL TO SEE THE REAL ERROR
@@ -129,14 +138,14 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
     final int total = tasks.length;
     int completed = 0;
     int pending = 0;
-    int inProgress = 0;
+    int overdue = 0;
 
     for (var task in tasks) {
       final status = task['status'] as String;
       if (status == 'completed') {
         completed++;
-      } else if (status == 'in_progress') {
-        inProgress++;
+      } else if (status == 'overdue') {
+        overdue++;
       } else {
         pending++; // 'pending' or 'todo'
       }
@@ -146,7 +155,7 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
       total: total,
       completed: completed,
       pending: pending,
-      inProgress: inProgress,
+      overdue: overdue,
     );
   }
 
@@ -188,10 +197,11 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
       throw ServerFailure(message: e.toString());
     }
   }
+
   @override
   Future<List<WeeklyProgress>> getWeeklyProgress(String userId) async {
     // --- DUMMY DATA MODE ---
-    
+
     // Simulate network delay to make it feel real
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -201,19 +211,21 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
     // Generate data for the last 7 days
     for (int i = 6; i >= 0; i--) {
       final date = now.subtract(Duration(days: i));
-      
+
       // Requires: import 'package:intl/intl.dart';
-      final dayName = DateFormat('E').format(date); 
+      final dayName = DateFormat('E').format(date);
 
       // Fake some data logic
       double rate;
       int completed;
 
       // Make the data look random but realistic
-      if (i == 0) { // Today
+      if (i == 0) {
+        // Today
         rate = 0.5; // 50%
         completed = 3;
-      } else if (i == 1) { // Yesterday
+      } else if (i == 1) {
+        // Yesterday
         rate = 0.9;
         completed = 8;
       } else if (i % 2 == 0) {
@@ -224,14 +236,69 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
         completed = 6;
       }
 
-      dummyList.add(WeeklyProgress(
-        dayName: dayName,
-        completionRate: rate,
-        tasksCompleted: completed,
-      ));
+      dummyList.add(
+        WeeklyProgress(
+          dayName: dayName,
+          completionRate: rate,
+          tasksCompleted: completed,
+        ),
+      );
     }
 
     return dummyList;
+  }
+
+  @override
+  Future<List<UpcomingTask>> getUpcomingTasks(String userId) async {
+    final upcomingResponse = await supabase
+        .from('calendar_tasks')
+        .select()
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        .order('end_time', ascending: true)
+        .limit(5);
+    return (upcomingResponse as List).map((e) {
+      return UpcomingTask(
+        title: e['title'],
+        subtitle: e['subtitle'] ?? '',
+        stats: e['status'],
+      );
+    }).toList();
+  }
+
+  /// Checks for pending tasks that have passed their due date
+  /// and updates them to 'overdue' in the database.
+  Future<void> _updateOverdueTasks(String userId) async {
+    try {
+      final now = DateTime.now().toUtc().toIso8601String();
+      final tasksToUpdate = await supabase
+          .from('calendar_tasks')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'pending')
+          .lt('end_time', now); // 'lt' means Less Than (Dates before now)
+
+      final List<dynamic> list = tasksToUpdate as List;
+
+      if (list.isEmpty) return; // No overdue tasks found, exit.
+
+      // 2. Extract IDs
+      final List<String> ids = list.map((e) => e['id'] as String).toList();
+
+      // 3. Perform Bulk Update
+      // "Update status to 'overdue' where ID is in [list of ids]"
+      await supabase
+          .from('calendar_tasks')
+          .update({'status': 'overdue'})
+          .inFilter('id', ids)
+          .select();
+
+      debugPrint('Auto-updated ${ids.length} tasks to Overdue');
+    } catch (e) {
+      // We log this, but we DON'T throw an exception.
+      // If this fails, we still want to show the dashboard, even if stats are slightly off.
+      debugPrint('Error updating overdue tasks: $e');
+    }
   }
 
   // @override

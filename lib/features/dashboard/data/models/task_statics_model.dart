@@ -5,14 +5,14 @@ class TaskStaticsModel extends TaskStatistics {
     required super.total,
     required super.completed,
     required super.pending,
-    required super.inProgress,
+    required super.overdue,
   });
   factory TaskStaticsModel.fromJson(Map<String, dynamic> json) {
     return TaskStaticsModel(
       total: json['total'],
       completed: json['completed'],
       pending: json['pending'],
-      inProgress: json['inProgress'],
+      overdue: json['overdue'],
     );
   }
   Map<String, dynamic> toJson() {
@@ -20,7 +20,7 @@ class TaskStaticsModel extends TaskStatistics {
       'total': total,
       'completed': completed,
       'pending': pending,
-      'inProgress': inProgress,
+      'overdue': overdue,
     };
   }
 }

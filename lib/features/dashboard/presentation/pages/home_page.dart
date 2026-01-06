@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/presentation/widgets/upcoming_task.dart';
 import 'package:shell_flow_mobile_app/injection_container.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -102,15 +103,18 @@ class _HomePageState extends State<HomePage> {
                     // PASS DATA: Daily Stats
                     dayTaskSummaryGrid(data.todayStats),
                     
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 20,),
                     const Text(
-                      'All Tasks Info',
+                      'Your Productivity Overview',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     
                     // PASS DATA: Overall Stats
                     allTaskSummaryGrid(data.overallStats),
                     
+                    const SizedBox(height: 20),
+                    const Text('Upcoming Tasks', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                    upcomingTasksList(context, data.upcomingTasks),
                     const SizedBox(height: 20),
                   ],
                 ),

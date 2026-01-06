@@ -8,4 +8,5 @@ abstract class CalendarRepository {
   Future<Either<Failure, List<CalendarTask>>> getTasksByRange(DateTime startDate, DateTime endDate);
   Future<Either<Failure, CalendarTask>> getTaskById(String id);
   Future<Either<Failure, List<CalendarTask>>> getAllTasks();
+  // Future<Either<Failure, List<CalendarTask>>> getAllTasks();
 }

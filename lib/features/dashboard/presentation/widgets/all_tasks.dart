@@ -29,7 +29,7 @@ Widget allTaskSummaryGrid(TaskStatistics stats) {
     StatItem(
       title: 'Overdue',
       subtitle: 'Tasks past deadline',
-      count: stats.inProgress,
+      count: stats.overdue,
       icon: Icons.error,
       iconColor: Colors.red,
     ),

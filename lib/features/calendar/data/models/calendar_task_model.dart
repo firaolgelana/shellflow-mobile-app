@@ -10,9 +10,9 @@ class CalendarTaskModel extends CalendarTask {
     required super.endTime,
     required super.isAllDay,
     required super.color,
+    required super.status,
   });
 
-  // FROM Supabase JSON
   factory CalendarTaskModel.fromJson(Map<String, dynamic> json) {
     return CalendarTaskModel(
       id: json['id'],
@@ -21,26 +21,30 @@ class CalendarTaskModel extends CalendarTask {
       startTime: DateTime.parse(json['start_time']).toLocal(),
       endTime: DateTime.parse(json['end_time']).toLocal(),
       isAllDay: json['is_all_day'] ?? false,
-      // Restore Color from Int, default to Green if null
-      color: Color(json['color_value'] ?? 0xFF0F8644), 
+      color: Color(json['color_value'] ?? 0xFF0F8644),
+      
+      // --- THE FIX IS HERE ---
+      // We convert the String 'pending' to the Enum TaskStatus.pending
+      status: _mapStringToStatus(json['status']), 
     );
   }
 
-  // TO Supabase JSON
   Map<String, dynamic> toJson({required String userId}) {
     return {
       if (id != null) 'id': id,
-      'user_id': userId, // Required by Supabase
+      'user_id': userId,
       'title': title,
       'description': description,
       'start_time': startTime.toUtc().toIso8601String(),
       'end_time': endTime.toUtc().toIso8601String(),
       'is_all_day': isAllDay,
-      'color_value': color.value, // Save Color as Int
+      'color_value': color.value,
+      
+      // Convert Enum back to String for Database
+      'status': status.name, 
     };
   }
 
-  // Helper to convert Domain Entity -> Data Model
   factory CalendarTaskModel.fromEntity(CalendarTask task) {
     return CalendarTaskModel(
       id: task.id,
@@ -50,6 +54,16 @@ class CalendarTaskModel extends CalendarTask {
       endTime: task.endTime,
       isAllDay: task.isAllDay,
       color: task.color,
+      status: task.status,
+    );
+  }
+
+  // --- HELPER FUNCTION ---
+  static TaskStatus _mapStringToStatus(String? status) {
+    // Look through the Enum values to find one that matches the string
+    return TaskStatus.values.firstWhere(
+      (e) => e.name == status,
+      orElse: () => TaskStatus.pending, // Default if not found or null
     );
   }
 }

@@ -9,6 +9,7 @@ import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_rec
 import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_task_statics.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_unread_notification_count.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/get_weekly_progress_usecase.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/usecases/upcoming_tasks.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:shell_flow_mobile_app/features/profile/data/datasources/profile_remote_datasource.dart';
 import 'package:shell_flow_mobile_app/features/profile/data/repositories/profile_repository_impl.dart';
@@ -137,6 +138,7 @@ void _initDashboard() {
   sl.registerLazySingleton(() => GetTaskStatics(repository: sl()));
   sl.registerLazySingleton(() => GetUnreadNotificationCount(repository: sl()));
   sl.registerLazySingleton(() => GetWeeklyProgressUsecase(repository: sl()));
+  sl.registerLazySingleton(() => UpcomingTasks(repository: sl()));
 
   // Bloc
   sl.registerFactory(
@@ -146,7 +148,8 @@ void _initDashboard() {
       getDailyTaskStatistics: sl(),
       getTaskStatistics: sl(),
       getRecentSocialActivities: sl(),
-      getWeeklyProgress: sl(),
+      getWeeklyProgress: sl(), 
+      getUpcomingTasks: sl(),
     ),
   );
 }

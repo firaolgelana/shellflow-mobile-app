@@ -7,6 +7,7 @@ class DashboardDataModel extends DashboardData {
     required super.overallStats,
     required super.recentActivities,
     required super.weeklyProgress,
+    required super.upcomingTasks,
     required super.unreadNotificationCount,
   });
   factory DashboardDataModel.fromJson(Map<String, dynamic> json) {
@@ -17,6 +18,7 @@ class DashboardDataModel extends DashboardData {
       recentActivities: json['recentActivities'],
       weeklyProgress: json['weeklyProgress'],
       unreadNotificationCount: json['unreadNotificationCount'],
+      upcomingTasks: json['upcomingTasks'],
     );
   }
   Map<String, dynamic> toJson() {
@@ -27,6 +29,7 @@ class DashboardDataModel extends DashboardData {
       'recentActivities': recentActivities,
       'weeklyProgress': weeklyProgress,
       'unreadNotificationCount': unreadNotificationCount,
+      'upcomingTasks': upcomingTasks,
     };
   }
 }

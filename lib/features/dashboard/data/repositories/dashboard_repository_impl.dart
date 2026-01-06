@@ -5,6 +5,7 @@ import 'package:shell_flow_mobile_app/features/dashboard/data/datasources/dashbo
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/dashboard_data.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/social_activity.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/task_statics.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/upcoming_task.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/weekly_progress.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/repositories/dashboard_repository.dart';
 
@@ -96,6 +97,20 @@ class DashboardRepositoryImpl implements DashboardRepository {
     if (await networkInfo.isConnected) {
       try {
         final result = remoteDatasource.getWeeklyProgress(userId);
+        return Right(await result);
+      } catch (e) {
+        return left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<UpcomingTask>>> getUpComingTasks(String userId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final result = remoteDatasource.getUpcomingTasks(userId);
         return Right(await result);
       } catch (e) {
         return left(ServerFailure(message: e.toString()));

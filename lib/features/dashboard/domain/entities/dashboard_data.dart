@@ -1,5 +1,6 @@
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/social_activity.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/task_statics.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/upcoming_task.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/entities/weekly_progress.dart';
 import 'package:shell_flow_mobile_app/features/profile/domain/entities/user_profile.dart';
 
@@ -9,6 +10,7 @@ class DashboardData {
   final TaskStatistics overallStats;
   final List<SocialActivity> recentActivities;
   final List<WeeklyProgress> weeklyProgress;
+  final List<UpcomingTask> upcomingTasks;
   final int unreadNotificationCount;
 
   DashboardData({
@@ -18,5 +20,6 @@ class DashboardData {
     required this.recentActivities,
     required this.weeklyProgress,
     required this.unreadNotificationCount,
+    required this.upcomingTasks,
   });
 }
