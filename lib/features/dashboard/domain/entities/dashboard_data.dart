@@ -22,4 +22,25 @@ class DashboardData {
     required this.unreadNotificationCount,
     required this.upcomingTasks,
   });
+    // --- ADD THIS METHOD ---
+  DashboardData copyWith({
+  UserProfile? userProfile,
+  TaskStatistics? todayStats,
+  TaskStatistics? overallStats,
+  List<SocialActivity>? recentActivities,
+  List<WeeklyProgress>? weeklyProgress,
+  List<UpcomingTask>? upcomingTasks,
+  int? unreadNotificationCount,
+
+  }) {
+    return DashboardData(
+      userProfile: userProfile ?? this.userProfile,
+      todayStats: todayStats ?? this.todayStats,
+      overallStats: overallStats ?? this.overallStats,
+      upcomingTasks: upcomingTasks ?? this.upcomingTasks,
+      recentActivities: recentActivities ?? this.recentActivities,
+      weeklyProgress: weeklyProgress ?? this.weeklyProgress,
+      unreadNotificationCount: unreadNotificationCount ?? this.unreadNotificationCount
+    );
+  }
 }

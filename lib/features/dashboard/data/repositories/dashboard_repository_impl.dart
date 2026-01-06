@@ -119,4 +119,18 @@ class DashboardRepositoryImpl implements DashboardRepository {
       return const Left(NetworkFailure(message: 'No internet connection'));
     }
   }
+  
+  @override
+  Future<Either<Failure, void>> updateTaskStatus(String taskId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final result = remoteDatasource.updateTaskStatus(taskId);
+        return Right(await result);
+      } catch (e) {
+        return left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+  }
 }

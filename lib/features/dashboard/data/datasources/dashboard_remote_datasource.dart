@@ -18,6 +18,7 @@ abstract class DashboardRemoteDatasource {
   Future<int> getUnreadNotificationCount(String userId);
   Future<List<WeeklyProgress>> getWeeklyProgress(String userId);
   Future<List<UpcomingTask>> getUpcomingTasks(String userId);
+  Future<void> updateTaskStatus(String taskId);
 }
 
 class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
@@ -259,15 +260,16 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
         .limit(5);
     return (upcomingResponse as List).map((e) {
       return UpcomingTask(
+        id: e['id'],
         title: e['title'],
-        subtitle: e['subtitle'] ?? '',
-        stats: e['status'],
+        status: e['status'],
+        dueDate: e['end_time'] != null
+            ? DateTime.parse(e['end_time']).toLocal()
+            : null,
       );
     }).toList();
   }
 
-  /// Checks for pending tasks that have passed their due date
-  /// and updates them to 'overdue' in the database.
   Future<void> _updateOverdueTasks(String userId) async {
     try {
       final now = DateTime.now().toUtc().toIso8601String();
@@ -298,6 +300,18 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
       // We log this, but we DON'T throw an exception.
       // If this fails, we still want to show the dashboard, even if stats are slightly off.
       debugPrint('Error updating overdue tasks: $e');
+    }
+  }
+
+  @override
+  Future<void> updateTaskStatus(String taskId) async {
+    try {
+      await supabase
+          .from('calendar_tasks')
+          .update({'status': 'completed'})
+          .eq('id', taskId);
+    } catch (e) {
+      throw ServerFailure(message: e.toString());
     }
   }
 

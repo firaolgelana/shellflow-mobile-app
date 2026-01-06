@@ -52,55 +52,6 @@ class AllTasksPage extends StatelessWidget {
       ),
     );
   }
-
-Widget _buildTaskTile(BuildContext context, CalendarTask task) {
-    // 1. Determine states
-    final isChecked = task.status == TaskStatus.completed;
-    final isOverdue = task.status == TaskStatus.overdue;
-
-    return ListTile(
-      // Change background color if overdue to alert user
-      tileColor: isOverdue ? Colors.red : null, 
-      
-      title: Text(
-        task.title,
-        style: TextStyle(
-          // Strike through if completed, normal if overdue
-          decoration: isChecked ? TextDecoration.lineThrough : null,
-          // Grey if completed, Red-ish if overdue, Black otherwise
-          color: isChecked 
-              ? Colors.grey 
-              : (isOverdue ? Colors.red[900] : Colors.black),
-          fontWeight: isOverdue ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      subtitle: Text(task.description),
-      
-      // 2. LOGIC: Checkbox vs Icon
-      trailing: isOverdue
-          ? _buildOverdueIcon(context, task) // Show Icon
-          : Checkbox(                        // Show Checkbox
-              value: isChecked,
-              activeColor: Colors.green,
-              onChanged: (bool? value) {
-                if (value != null) {
-                  final newStatus = value ? TaskStatus.completed : TaskStatus.pending;
-                  final updatedTask = task.copyWith(status: newStatus);
-                  context.read<CalendarBloc>().add(UpdateTaskEvent(updatedTask));
-                }
-              },
-            ),
-            
-      // Optional: Allow tapping the tile to resolve overdue status manually?
-      onTap: isOverdue 
-        ? () {
-            // Logic to handle overdue task click (e.g., show dialog to reschedule or complete)
-            _showOverdueOptions(context, task);
-          } 
-        : null,
-    );
-  }
-
   // Helper widget for the Overdue Icon
   Widget _buildOverdueIcon(BuildContext context, CalendarTask task) {
     return const Tooltip(
@@ -113,29 +64,150 @@ Widget _buildTaskTile(BuildContext context, CalendarTask task) {
     );
   }
 
-  // Optional: A helper to handle what happens when you click an overdue task
-  void _showOverdueOptions(BuildContext context, CalendarTask task) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Overdue Task"),
-        content: Text("What do you want to do with '${task.title}'?"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              // Mark as Completed
-              final updatedTask = task.copyWith(status: TaskStatus.completed);
-              context.read<CalendarBloc>().add(UpdateTaskEvent(updatedTask));
-            },
-            child: const Text("Mark Completed"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancel"),
-          ),
-        ],
+Widget _buildTaskTile(BuildContext context, CalendarTask task) {
+    final isChecked = task.status == TaskStatus.completed;
+    final isOverdue = task.status == TaskStatus.overdue;
+
+    return ListTile(
+      // Visual styling
+      tileColor: isOverdue ? Colors.red.withOpacity(0.05) : null,
+      title: Text(
+        task.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis, // Truncate title too if needed
+        style: TextStyle(
+          decoration: isChecked ? TextDecoration.lineThrough : null,
+          color: isChecked 
+              ? Colors.grey 
+              : (isOverdue ? Colors.red[900] : Colors.black),
+          fontWeight: isOverdue ? FontWeight.bold : FontWeight.normal,
+        ),
       ),
+      
+      // --- TRUNCATE DESCRIPTION HERE ---
+      subtitle: task.description.isNotEmpty
+          ? Text(
+              task.description,
+              maxLines: 1, // Limit to 1 line
+              overflow: TextOverflow.ellipsis, // Show "..."
+              style: const TextStyle(color: Colors.grey),
+            )
+          : null,
+
+      // Trailing logic
+      trailing: isOverdue
+          ? _buildOverdueIcon(context, task)
+          : Checkbox(
+              value: isChecked,
+              activeColor: Colors.green,
+              onChanged: (bool? value) {
+                if (value != null) {
+                  final newStatus = value ? TaskStatus.completed : TaskStatus.pending;
+                  final updatedTask = task.copyWith(status: newStatus);
+                  context.read<CalendarBloc>().add(UpdateTaskEvent(updatedTask));
+                }
+              },
+            ),
+
+      // --- ON TAP: Show Full Details (For ALL tasks) ---
+      onTap: () {
+        _showTaskDetailsBottomSheet(context, task);
+      },
+    );
+  }
+
+  // --- NEW DETAIL VIEW ---
+  void _showTaskDetailsBottomSheet(BuildContext context, CalendarTask task) {
+    final isOverdue = task.status == TaskStatus.overdue;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // Shrink to fit content
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      task.title,
+                      style: const TextStyle(
+                        fontSize: 22, 
+                        fontWeight: FontWeight.bold
+                      ),
+                    ),
+                  ),
+                  if (isOverdue)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.red[100],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        "OVERDUE",
+                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              // Full Description
+              const Text(
+                "Description:",
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                task.description.isEmpty ? "No description provided." : task.description,
+                style: const TextStyle(fontSize: 16, height: 1.5),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Actions
+              if (isOverdue) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(ctx); // Close popup
+                      // Mark as Completed
+                      final updatedTask = task.copyWith(status: TaskStatus.completed);
+                      context.read<CalendarBloc>().add(UpdateTaskEvent(updatedTask));
+                    },
+                    icon: const Icon(Icons.check),
+                    label: const Text("Mark as Completed"),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              
+              // Close Button
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text("Close"),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

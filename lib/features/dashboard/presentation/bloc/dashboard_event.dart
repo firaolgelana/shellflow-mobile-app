@@ -28,3 +28,7 @@ class RefreshTaskStats extends DashboardEvent {
   final String userId;
   const RefreshTaskStats(this.userId);
 }
+class ToggleTaskStatusEvent extends DashboardEvent {
+  final String taskId;
+  const ToggleTaskStatusEvent({required this.taskId});
+}

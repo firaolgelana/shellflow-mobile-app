@@ -13,4 +13,6 @@ abstract class DashboardRepository {
   Future<Either<Failure, int>> getUnreadNotificationCount(String userId);
   Future<Either<Failure, List<WeeklyProgress>>> getWeeklyProgress(String userId);
   Future<Either<Failure, List<UpcomingTask>>> getUpComingTasks(String userId);
+  Future<Either<Failure, void>> updateTaskStatus(String taskId);
+
 }
