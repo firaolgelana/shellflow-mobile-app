@@ -5,6 +5,7 @@ import 'package:shell_flow_mobile_app/features/auth/presentation/pages/sign_up_p
 import 'package:shell_flow_mobile_app/features/calendar/presentation/pages/all_tasks_page.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/presentation/pages/dashboard.dart';
 import 'package:shell_flow_mobile_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:shell_flow_mobile_app/features/settings/presentation/pages/settings_page.dart';
 
 class AppRoutes {
   static const signIn = '/sign-in';
@@ -13,7 +14,8 @@ class AppRoutes {
   static const profile = '/profile';
   static const otpPage = '/otp-page';
   static const allTaskPage = '/all-task-page';
-
+  static const settingsPage = '/settings';
+  
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case signIn:
@@ -36,6 +38,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => OtpPage(email: email));
       case allTaskPage:
         return MaterialPageRoute(builder: (_) => const AllTasksPage());
+      case settingsPage:
+        return MaterialPageRoute(builder: (_) => const SettingsPage());
 
       default:
         return MaterialPageRoute(
