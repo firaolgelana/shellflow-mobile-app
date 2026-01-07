@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shell_flow_mobile_app/core/routes/app_routes.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:shell_flow_mobile_app/features/dashboard/presentation/pages/features_page.dart';
 // Import your AuthBloc if you have one for logout
 // import 'package:shell_flow_mobile_app/features/auth/presentation/bloc/auth_bloc.dart';
 
@@ -105,7 +106,7 @@ Widget drawerWidget(BuildContext context) {
               title: const Text('Tasks'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, AppRoutes.allTaskPage); 
+                Navigator.pushNamed(context, AppRoutes.allTaskPage);
               },
             ),
             ListTile(
@@ -119,13 +120,24 @@ Widget drawerWidget(BuildContext context) {
                 // Navigator.pushNamed(context, AppRoutes.social);
               },
             ),
-            const ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, AppRoutes.settingsPage);
+              },
             ),
-            const ListTile(
-              leading: Icon(Icons.featured_play_list),
-              title: Text('Features'),
+            ListTile(
+              leading: const Icon(Icons.featured_play_list),
+              title: const Text('Features'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FeaturesPage()),
+                );
+              },
             ),
 
             // 5. Logout Logic
