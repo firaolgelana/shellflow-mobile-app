@@ -6,7 +6,7 @@ import 'package:shell_flow_mobile_app/features/settings/domain/repositories/sett
 class GetSettingUsecase {
   final SettingRepository repository;
   const GetSettingUsecase({required this.repository});
-  Future<Either<Failure, UserSetting>> call(String userId) {
-    return repository.getUserSetting(userId);
+  Future<Either<Failure, UserSetting>> call() {
+    return repository.getUserSetting();
   }
 }

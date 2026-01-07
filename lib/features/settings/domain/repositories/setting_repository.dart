@@ -8,8 +8,8 @@ import 'package:shell_flow_mobile_app/features/settings/domain/entities/security
 import 'package:shell_flow_mobile_app/features/settings/domain/entities/user_setting.dart';
 
 abstract class SettingRepository {
-  Future<Either<Failure, Account>> userAccount(String userId);
-  Future<Either<Failure, UserSetting>> getUserSetting(String userId);
+  Future<Either<Failure, Account>> userAccount();
+  Future<Either<Failure, UserSetting>> getUserSetting();
   Future<Either<Failure, Preference>> updatePreference(Preference preference);
   Future<Either<Failure, NotificationSettings>> updateNotificationSettings(
     NotificationSettings settings,

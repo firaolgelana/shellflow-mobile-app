@@ -32,10 +32,10 @@ class SettingsRepositoryImpl implements SettingRepository {
   }
 
   @override
-  Future<Either<Failure, UserSetting>> getUserSetting(String userId)async {
+  Future<Either<Failure, UserSetting>> getUserSetting()async {
     if (await networkInfo.isConnected) {
       try {
-        final result = await remoteDatasource.getUserSetting(userId);
+        final result = await remoteDatasource.getUserSetting();
         return Right(result);
       } catch (e) {
         return left(ServerFailure(message: e.toString()));
@@ -104,10 +104,10 @@ class SettingsRepositoryImpl implements SettingRepository {
   }
 
   @override
-  Future<Either<Failure, Account>> userAccount(String userId)async {
+  Future<Either<Failure, Account>> userAccount()async {
     if (await networkInfo.isConnected) {
       try {
-        final result = await remoteDatasource.userAccount(userId);
+        final result = await remoteDatasource.userAccount();
         return Right(result);
       } catch (e) {
         return left(ServerFailure(message: e.toString()));

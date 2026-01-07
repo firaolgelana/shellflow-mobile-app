@@ -6,7 +6,7 @@ import 'package:shell_flow_mobile_app/features/settings/domain/repositories/sett
 class AccountUsecase {
   final SettingRepository repository;
   const AccountUsecase({required this.repository});
-  Future<Either<Failure, Account>> call(String userId) {
-    return repository.userAccount(userId);
+  Future<Either<Failure, Account>> call() {
+    return repository.userAccount();
   }
 }
