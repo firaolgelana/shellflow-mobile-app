@@ -18,6 +18,16 @@ import 'package:shell_flow_mobile_app/features/profile/domain/repositories/profi
 import 'package:shell_flow_mobile_app/features/profile/domain/usecases/get_profile_usecase.dart';
 import 'package:shell_flow_mobile_app/features/profile/domain/usecases/update_profile_usecase.dart';
 import 'package:shell_flow_mobile_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:shell_flow_mobile_app/features/settings/data/datasources/settings_remote_datasource.dart';
+import 'package:shell_flow_mobile_app/features/settings/data/repositories/settings_repository_impl.dart';
+import 'package:shell_flow_mobile_app/features/settings/domain/repositories/setting_repository.dart';
+import 'package:shell_flow_mobile_app/features/settings/domain/usecases/account_usecase.dart';
+import 'package:shell_flow_mobile_app/features/settings/domain/usecases/get_setting_usecase.dart';
+import 'package:shell_flow_mobile_app/features/settings/domain/usecases/notification_usecase.dart';
+import 'package:shell_flow_mobile_app/features/settings/domain/usecases/preference_usecase.dart';
+import 'package:shell_flow_mobile_app/features/settings/domain/usecases/privacy_usecase.dart';
+import 'package:shell_flow_mobile_app/features/settings/domain/usecases/security_usecase.dart';
+import 'package:shell_flow_mobile_app/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:shell_flow_mobile_app/features/social/data/datasources/social_remote_datasource.dart';
 import 'package:shell_flow_mobile_app/features/social/data/repositories/social_repository_impl.dart';
 import 'package:shell_flow_mobile_app/features/social/domain/repositories/social_repository.dart';
@@ -86,6 +96,7 @@ Future<void> initDependencies() async {
   _initSocial();
   _initProfile();
   _initDashboard();
+  _initSettings();
 }
 
 void _initAuth() {
@@ -150,8 +161,8 @@ void _initDashboard() {
       getDailyTaskStatistics: sl(),
       getTaskStatistics: sl(),
       getRecentSocialActivities: sl(),
-      getWeeklyProgress: sl(), 
-      getUpcomingTasks: sl(), 
+      getWeeklyProgress: sl(),
+      getUpcomingTasks: sl(),
       toggleTaskStatus: sl(),
     ),
   );
@@ -267,6 +278,38 @@ void _initSocial() {
       sendConnectionRequest: sl(),
       shareTaskToFeed: sl(),
       toggleLikeTask: sl(),
+    ),
+  );
+}
+
+void _initSettings() {
+  // Datasource
+  sl.registerLazySingleton<SettingsRemoteDatasource>(
+    () => SettingsRemoteDatasourceImpl(supabase: sl(), sharedPreferences: sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<SettingRepository>(
+    () => SettingsRepositoryImpl(remoteDatasource: sl(), networkInfo: sl()),
+  );
+
+  // Usecases
+  sl.registerLazySingleton(() => AccountUsecase(repository: sl()));
+  sl.registerLazySingleton(() => GetSettingUsecase(repository: sl()));
+  sl.registerLazySingleton(() => NotificationUsecase(repository: sl()));
+  sl.registerLazySingleton(() => PreferenceUsecase(repository: sl()));
+  sl.registerLazySingleton(() => PrivacyUsecase(repository: sl()));
+  sl.registerLazySingleton(() => SecurityUsecase(repository: sl()));
+
+  // Bloc
+  sl.registerFactory(
+    () => SettingsBloc(
+      getSettingUseCase: sl(),
+      updatePreferenceUseCase: sl(),
+      updateNotificationUseCase: sl(),
+      updatePrivacyUseCase: sl(),
+      updateSecurityUseCase: sl(),
+      accountUseCase: sl(),
     ),
   );
 }
