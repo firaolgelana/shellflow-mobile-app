@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:shell_flow_mobile_app/features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -89,7 +90,9 @@ Future<void> initDependencies() async {
   // Core Network Info
   sl.registerLazySingleton(() => InternetConnectionChecker.instance);
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-
+  sl.registerSingletonAsync<SharedPreferences>(() async {
+    return await SharedPreferences.getInstance();
+  });
   // 2. Register Features
   _initAuth();
   _initCalendar();
